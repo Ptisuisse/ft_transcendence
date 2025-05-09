@@ -1,0 +1,19 @@
+Installation Nodejs : 
+- nvm install 20 #Installation
+- nvm use 20 #Utilisation
+- nvm alias default 20 #utilisation par default
+
+Check :
+- node -v (Version)
+
+NE PAS FAIRE : 
+
+npm create vite@latest .
+commande standard pour démarrer un nouveau projet Vite.
+
+nmp install :  lire le package.json et installer 
+toutes les dépendances dans un dossier node_modules à l'intérieur 
+de ton dossier frontend
+
+Run en local :
+npm run dev

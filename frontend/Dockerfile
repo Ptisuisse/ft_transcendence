@@ -3,11 +3,11 @@ FROM node:20-slim AS builder
 
 WORKDIR /app
 
-COPY web/package*.json ./
+COPY conf/package*.json ./
 
 RUN npm install
 
-COPY web/. ./
+COPY conf/. ./
 
 RUN npm run build
 

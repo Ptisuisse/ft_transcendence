@@ -21,3 +21,9 @@ npx tailwindcss init (Ne pas faire, init le fichier tailwind.config.js)
 
 Run en local :
 npm run dev
+
+
+DATABASE :
+    access 
+        docker exec -it sqlite-db sh
+        sqlite3 /data/database.db

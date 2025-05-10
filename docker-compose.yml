@@ -1,44 +1,40 @@
-version: '3.8'
-
 services:
   frontend:
     build:
-      context: ./frontend # Chemin vers le dossier du frontend
-      dockerfile: Dockerfile # Nom du Dockerfile à utiliser
-    ports:
-      - "5173:5173" # Mappe le port 5173 de ta machine au port 5173 du conteneur
-    volumes:
-      - ./frontend:/app # Monte le code source du frontend dans le conteneur pour le live reload
-      - /app/node_modules # Astuce pour éviter que node_modules local n'écrase celui du conteneur
-    environment:
-      - CHOKIDAR_USEPOLLING=true # Peut aider pour le hot-reload dans certains environnements Docker
-    stdin_open: true # Nécessaire pour que Vite reçoive les signaux correctement
-    tty: true        # Nécessaire pour que Vite reçoive les signaux correctement
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    expose:
+      - "80"
+    networks:
+      - app_network
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: backend
+    expose:
+      - "3000"
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
     ports:
-      - "3000:3000" # Mappe le port 3000 de ta machine au port 3000 du conteneur
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-    environment:
-      NODE_ENV: development # Assure que NestJS s'exécute en mode développement
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app_network
+    restart: unless-stopped
 
-# Section pour la base de données (on l'ajoutera plus tard)
-#  db:
-#    image: postgres:14-alpine # Ou une version plus récente si tu préfères
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
-#    environment:
-#      POSTGRES_USER: ptisuisse # Change avec ton nom d'utilisateur souhaité
-#      POSTGRES_PASSWORD: yoursecurepassword # Change avec un mot de passe sécurisé
-#      POSTGRES_DB: transcendence_db # Nom de ta base de données
-#    restart: unless-stopped
-
-#volumes: # Décommenter quand on ajoute la DB
-#  postgres_data:
+networks:
+  app_network:
+    driver: bridge

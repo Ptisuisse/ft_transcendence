@@ -15,5 +15,9 @@ nmp install :  lire le package.json et installer
 toutes les dépendances dans un dossier node_modules à l'intérieur 
 de ton dossier frontend
 
+Installation de Tailwind CSS :
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init (Ne pas faire, init le fichier tailwind.config.js)
+
 Run en local :
 npm run dev

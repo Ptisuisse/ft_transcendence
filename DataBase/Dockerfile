@@ -1,13 +1,14 @@
-FROM alpine:latest
+
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
 
 RUN apk add --no-cache sqlite
 
-WORKDIR /data
+COPY package*.json ./
 
-COPY init.sql /docker-entrypoint-initdb.d/init.sql
+RUN npm install
 
-RUN sqlite3 /data/database.db < /docker-entrypoint-initdb.d/init.sql || true
+COPY . .
 
-VOLUME ["/data"]
-
-CMD ["tail", "-f", "/dev/null"]
+CMD [ "node", "app.js" ]

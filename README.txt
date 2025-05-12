@@ -1,4 +1,5 @@
 Installation Nodejs : 
+- curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 - nvm install 20 #Installation
 - nvm use 20 #Utilisation
 - nvm alias default 20 #utilisation par default
@@ -22,8 +23,10 @@ npx tailwindcss init (Ne pas faire, init le fichier tailwind.config.js)
 Run en local :
 npm run dev
 
-
 DATABASE :
     access 
         docker exec -it sqlite-db sh
         sqlite3 /data/database.db
+
+FASTIFY : 
+https://www.npmjs.com/package/fastify

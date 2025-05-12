@@ -12,6 +12,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
     </a>
     <h1>Vite + TypeScript</h1>
+    <h2> LOL </h2>
         <h1>Vite + TypeScript</h1>
     <div class="card">
       <button id="counter" type="button"></button>

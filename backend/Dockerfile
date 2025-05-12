@@ -1,26 +1,14 @@
 # Dockerfile Backend
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY conf/package*.json ./
-
-RUN npm install
-
-COPY conf/. ./
-
-RUN npm run build
-
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY conf/package*.json ./
+COPY package*.json ./
 
-RUN npm install --omit=dev
+RUN npm install --omit=dev 
 
-COPY --from=builder /app/dist ./dist
+COPY . .
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start"]

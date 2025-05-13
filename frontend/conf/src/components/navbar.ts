@@ -1,7 +1,7 @@
 export function createNavbar(routes: { [key: string]: string }): HTMLElement {
 
 	const nav = document.createElement('nav');
-	nav.className = 'bg-[#242424] p-4 text-white flex justify-center items-center fixed top-0 left-0 right-0 w-full z-50'; 
+	nav.className = 'bg-[#242424] opacity-75 p-4 text-white flex justify-center items-center fixed top-0 left-0 right-0 w-full z-50'; 
   
 	// Conteneur pour element gauche et droit
 	const leftItemsContainer = document.createElement('div');

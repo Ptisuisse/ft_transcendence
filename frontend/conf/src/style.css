@@ -28,10 +28,39 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: flex; /* Conserve le centrage vertical de #app si son contenu est plus petit que la vue */
+  place-items: center; /* Conserve le centrage horizontal/vertical */
   min-width: 320px;
   min-height: 100vh;
+  padding-top: 5rem; /* Espace pour la navbar fixe. Ajustez si la hauteur de la navbar change. */
+                     /* Estimation: p-4 (1rem*2) + img h-8 (2rem) = 4rem. 5rem = petite marge. */
+  box-sizing: border-box;
+  /* Le GIF est retiré d'ici et géré par body::before */
+  background-image: linear-gradient(rgba(10, 10, 10, 0.5), rgba(0, 0, 0, 0.5)), /* Valeur alpha corrigée (était 10.5) */
+                    url('../public/background.jpg'); /* Image de fond existante */
+  background-size: cover; /* S'applique aux couches restantes (gradient et image) */
+  background-position: center center; /* S'applique aux couches restantes */
+  background-repeat: no-repeat; /* S'applique aux couches restantes */
+  background-attachment: fixed; /* S'applique aux couches restantes */
+  position: relative; /* Nécessaire pour certains positionnements de pseudo-éléments, bien que ::before soit fixed ici */
+}
+
+/* Pseudo-élément pour afficher le GIF avec opacité */
+body::before {
+  content: '';
+  position: fixed; /* Couvre tout le viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../public/noise.gif'); /* Votre GIF */
+  background-repeat: repeat; /* Les GIFs "noise" sont souvent conçus pour se répéter */
+  background-size: auto; /* Ou une taille spécifique pour le motif du GIF, ex: 150px */
+  background-attachment: fixed; /* Le GIF reste fixe avec le défilement */
+  opacity: 0.01; /* Ajustez cette valeur pour l'opacité souhaitée (ex: 0.05 pour 5%) */
+  pointer-events: none; /* Permet aux clics de passer à travers le GIF vers le contenu en dessous */
+  /* z-index n'est généralement pas nécessaire ici, car position:fixed le place au-dessus du fond normal du body,
+     et pointer-events:none gère l'interaction. Le contenu de #app sera au-dessus. */
 }
 
 h1 {
@@ -41,9 +70,10 @@ h1 {
 
 #app {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 0 auto; /* Centre le bloc de contenu */
+  padding: 2rem; /* Padding interne pour le contenu de #app */
   text-align: center;
+  width: 100%; /* S'assure que #app occupe la largeur disponible pour un centrage correct */
 }
 
 .logo {
@@ -89,7 +119,7 @@ button:focus-visible {
 @media (prefers-color-scheme: light) {
   :root {
     color: #C3BABA;
-    background-color:#333333;
+    /* background-color:#333333; */
     /* @apply bg-gradient-to-r from-indigo-800 from-10% via-sky-800 via-30% to-emerald-800 to-90%; Dégradé */
   }
   a:hover {

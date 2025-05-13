@@ -30,3 +30,15 @@ DATABASE :
 
 FASTIFY : 
 https://www.npmjs.com/package/fastify
+
+COLOR :
+Neon blue = #646CFF
+Eerie black = #242424
+Periwinkle = #D4DCFF
+Xanthous = #FFC145
+Silver = #C3BABA
+Jet = #333333
+
+Aquamarine = #8CFBDE
+Coral = #FF7F51
+Spring green = #0FFF95

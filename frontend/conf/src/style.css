@@ -88,8 +88,9 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #C3BABA;
+    background-color:#333333;
+    /* @apply bg-gradient-to-r from-indigo-800 from-10% via-sky-800 via-30% to-emerald-800 to-90%; Dégradé */
   }
   a:hover {
     color: #747bff;
@@ -98,3 +99,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+

@@ -1,26 +1,42 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+
+// Add a meta tag for the Google client ID
+const meta = document.createElement('meta');
+meta.name = 'google-signin-client_id';
+meta.content = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com'; // Replace with your actual client ID
+document.head.appendChild(meta);
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <h2> LOL </h2>
-        <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+  <div id="my-signin2"></div>
+`;
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+function onSuccess(googleUser: any) {
+  console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+}
+
+function onFailure(error: any) {
+  console.error(error);
+}
+
+function renderButton() {
+  (window as any).gapi.signin2.render('my-signin2', {
+    scope: 'profile email',
+    width: 240,
+    height: 50,
+    longtitle: true,
+    theme: 'dark',
+    onsuccess: onSuccess,
+    onfailure: onFailure,
+    client_id: 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com' // Add this line
+  });
+}
+
+const script = document.createElement('script');
+script.src = 'https://apis.google.com/js/platform.js';
+script.async = true;
+script.defer = true;
+script.onload = () => {
+  renderButton();
+};
+document.head.appendChild(script);
+// 

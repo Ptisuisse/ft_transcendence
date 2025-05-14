@@ -1,7 +1,7 @@
 export function createNavbar(routes: { [key: string]: string }): HTMLElement {
 
 	const nav = document.createElement('nav');
-	nav.className = 'bg-[#242424] opacity-75 p-4 text-white flex justify-center items-center fixed top-0 left-0 right-0 w-full z-50'; 
+	nav.className = 'bg-[#242424] p-4 text-white flex justify-center items-center fixed top-0 left-0 right-0 w-full z-50'; 
   
 	// Conteneur pour element gauche et droit
 	const leftItemsContainer = document.createElement('div');
@@ -26,8 +26,8 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
 	loginImageLink.setAttribute('data-link', '');
   
 	const loginImg = document.createElement('img');
-    const defaultLoginSrc = '/login.png'; // Chemin vers l'image par défaut
-    const hoverLoginSrc = '/hover_login.png'; // Chemin vers l'image au survol
+    const defaultLoginSrc = '/login.png';
+    const hoverLoginSrc = '/hover_login.png';
 
     loginImg.src = defaultLoginSrc; 
     loginImg.alt = 'Login';
@@ -49,7 +49,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
 	nav.appendChild(leftItemsContainer);
 	
 	const navLinks = document.createElement('div');
-	navLinks.className = 'space-x-10 flex items-center';
+ 	navLinks.className = 'md:flex space-x-10 items-center'
   
 	  for (const path in routes) {
 		const link = document.createElement('a');

@@ -23,7 +23,7 @@ body {
   min-width: 320px;
   padding: 0 1rem;
   margin-top: 4rem;
-  background-image: linear-gradient(rgba(10, 10, 10, 0.5), rgba(0, 0, 0, 0.185)), 
+  background-image: linear-gradient(rgba(10, 10, 10, 0.3), rgba(0, 0, 0, 0.8)), 
                     url('../public/background.jpg'); 
   background-size: cover; 
   background-position: center center; 
@@ -47,11 +47,49 @@ body::before {
 }
 
 @layer utilities {
+  .Parent {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+    gap: 0.5rem; /* Espacement par défaut entre les éléments */
+  }
+
+  /* Espacement responsive */
+  @screen sm {
+    .Parent {
+      gap: 1rem; /* Plus d'espace sur les petits écrans */
+    }
+  }
+
+  @screen md {
+    .Parent {
+      gap: 2rem; /* Espacement plus large sur les écrans moyens */
+    }
+  }
+
+  @screen lg {
+    .Parent {
+      gap: 3rem; /* Espacement encore plus large sur les grands écrans */
+    }
+  }
+}
+
+@layer utilities {
+.image-zoom {
+  width: 100%; /* L'image prendra toute la largeur de son conteneur */
+  height: 100%; /* L'image prendra toute la hauteur de son conteneur */
+  object-fit: contain; /* L'image s'ajuste pour couvrir tout le conteneur sans déformation */
+  transition: transform 0.3s ease; /* Ajoute une transition fluide pour l'effet de zoom */
+}
+}
+
+/* @layer utilities {
   .page-container-full-height {
     min-height: calc(100vh - 4rem);
     width: 100%;
   }
-}
+} */
 
 /* liens invisibles en petit écran */
 @layer utilities {

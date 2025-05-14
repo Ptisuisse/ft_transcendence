@@ -5,7 +5,8 @@ const fp = require('fastify-plugin')
 const sqlite3 = require('sqlite3').verbose()
 
 // Define the path to the database file as seen from the backend container
-const dbPath = '/db_data/database.db'; 
+const path = require('path');
+const dbPath = path.join(__dirname, '../../DataBase/data/database.db');
 
 async function dbConnector (fastify, options) {
   const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE, (err) => {

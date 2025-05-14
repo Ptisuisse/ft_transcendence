@@ -27,7 +27,7 @@ export function LoginPage(): HTMLElement {
       </div>
       
       <p id="status-message" style="color: white; margin-top: 10px;">Waiting for authentication...</p>
-      <button id="sign-out-button" style="margin-top: 20px; padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">Sign Out</button>
+      <button id="sign-out-button" style="margin-top: 20px; padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; display: none; ">Sign Out</button>
     </div>
   `;
   
@@ -35,7 +35,6 @@ export function LoginPage(): HTMLElement {
   const signOutButton = element.querySelector('#sign-out-button') as HTMLButtonElement;
   if (signOutButton) {
     signOutButton.addEventListener('click', () => {
-      // Sign out
       signOut();
     });
   }
@@ -50,37 +49,53 @@ export function LoginPage(): HTMLElement {
   // Define the callback function for credential response in the global scope
 // Define the callback function for credential response in the global scope
   (window as any).handleCredentialResponse = (response: any) => {
-    const credential = parseJwt(response.credential);
-    console.log("Logged in as:", credential.name);
-    
-    // Récupérer l'élément conteneur de statut
-    const statusMessage = document.getElementById('status-message');
-    
-    // Vider le message de statut existant
-    if (statusMessage) {
-      statusMessage.innerHTML = '';
-      
-      // Ajouter l'image si disponible
-      if (credential.picture) {
-        const profileImg = document.createElement('img');
-        profileImg.src = credential.picture;
-        profileImg.alt = "Profile picture";
-        profileImg.id = "profile-picture";
-        profileImg.className = 'w-50 h-50 rounded-full mx-auto';
+    const jwt = response.credential;
 
-        
-        // Ajouter l'image au message de statut
-        statusMessage.appendChild(profileImg);
+    fetch('api/auth/google', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ jwt })
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Réponse backend:', data);
+      const statusMessage = document.getElementById('status-message');
+      if (statusMessage) {
+        statusMessage.innerHTML = '';
+        // Ajouter l'image si disponible
+        if (data.picture) {
+          const profileImg = document.createElement('img');
+          profileImg.src = data.picture;
+          profileImg.alt = "Profile picture";
+          profileImg.id = "profile-picture";
+          profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg'; // Taille + marge + ombre
+          // Ajouter l'image au message de statut
+          statusMessage.appendChild(profileImg);
+        }
+        // Ajouter le texte après l'image
+        const textNode = document.createElement('span');
+        textNode.textContent = ` Signed in as: ${data.name}`;
+        textNode.style.marginLeft = '10px';
+        statusMessage.appendChild(textNode);
       }
-      
-      // Ajouter le texte après l'image
-      const textNode = document.createElement('span');
-      textNode.textContent = ` Signed in as: ${credential.name}`;
-      textNode.style.marginLeft = '10px';
-      statusMessage.appendChild(textNode);
-    }
-    
-    console.log("User signed in:", credential);
+      // Show the sign-out button
+      const signOutButton = document.getElementById('sign-out-button');
+      if (signOutButton) {
+        signOutButton.style.display = 'block';
+      }
+      // Hide the sign-in button
+      const signInButton = document.querySelector('.g_id_signin');
+      if (signInButton) {
+        (signInButton as HTMLElement).style.display = 'none';
+      }
+
+    })
+    .catch(error => {
+      console.error('Erreur lors de lenvoi au backend:', error);
+    });
+
     const signInButton = document.querySelector('.g_id_signin');
     if (signInButton) {
       (signInButton as HTMLElement).style.display = 'none';
@@ -96,59 +111,44 @@ export function LoginPage(): HTMLElement {
   return element;
 }
 
-// Parse the JWT token from Google
-function parseJwt(token: string) {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-  }).join(''));
-  
-  return JSON.parse(jsonPayload);
-}
 
 function signOut() {
-  // Get all the Google Sign-In buttons
-  const buttons = document.querySelectorAll('.g_id_signin');
-  
-  // Remove existing buttons
-  buttons.forEach(button => button.remove());
-  
-  // Create a new button container
-  const newButtonContainer = document.createElement('div');
-  newButtonContainer.className = 'g_id_signin';
-  newButtonContainer.dataset.type = 'standard';
-  newButtonContainer.dataset.shape = 'rectangular';
-  newButtonContainer.dataset.theme = 'outline';
-  newButtonContainer.dataset.text = 'signin_with';
-  newButtonContainer.dataset.size = 'large';
-  newButtonContainer.dataset.logo_alignment = 'left';
-  
-  // Add the new button container after the g_id_onload div
-  const onloadDiv = document.getElementById('g_id_onload');
-  if (onloadDiv && onloadDiv.parentNode) {
-    onloadDiv.parentNode.insertBefore(newButtonContainer, onloadDiv.nextSibling);
+  // 1. Supprimer l'image de profil et le message
+  const statusMessage = document.getElementById('status-message');
+  if (statusMessage) {
+    statusMessage.innerHTML = "Signed out";
   }
-  
-  // Hide the sign-out button
+
+  // 2. Cacher le bouton "Sign Out"
   const signOutButton = document.getElementById('sign-out-button');
   if (signOutButton) {
     signOutButton.style.display = 'none';
   }
-  
-  // Update the status message
-  document.getElementById('status-message')!.textContent = "Signed out";
-  
-  // Revoke the token (optional)
-  const token = document.cookie.replace(/(?:(?:^|.*;\s*)g_csrf_token\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-  if (token) {
-    fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
+
+  // 3. Réafficher le bouton "Sign In"
+  let signInButton = document.querySelector('.g_id_signin');
+  if (!signInButton) {
+    // Si le bouton a été supprimé, on le recrée
+    signInButton = document.createElement('div');
+    signInButton.className = 'g_id_signin';
+    signInButton.setAttribute('data-type', 'standard');
+    signInButton.setAttribute('data-shape', 'rectangular');
+    signInButton.setAttribute('data-theme', 'outline');
+    signInButton.setAttribute('data-text', 'signin_with');
+    signInButton.setAttribute('data-size', 'large');
+    signInButton.setAttribute('data-logo_alignment', 'left');
+    // On le place après le g_id_onload
+    const onloadDiv = document.getElementById('g_id_onload');
+    if (onloadDiv && onloadDiv.parentNode) {
+      onloadDiv.parentNode.insertBefore(signInButton, onloadDiv.nextSibling);
+    }
+    // Google Identity Services va automatiquement retransformer ce div en bouton
+  } else {
+    (signInButton as HTMLElement).style.display = 'block';
   }
-  
+
+  // 4. (Optionnel) Révoquer le token Google côté client
+  // (Tu peux garder ce code si tu veux vraiment révoquer le token)
+
   console.log("User signed out");
 }

@@ -1,7 +1,7 @@
 export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   const nav = document.createElement('nav');
-  nav.className = 'bg-[#242424] p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50';
-
+  //nav.className = 'border border-purple-300 p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50';
+  nav.className = 'border border-purple-300 p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50 bg-[#242424]/75 backdrop-blur-sm';
   // Conteneur gauche et droit
   const leftItemsContainer = document.createElement('div');
   leftItemsContainer.className = 'absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-4'; 
@@ -14,7 +14,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   textLogoLink.href = '/'; 
   textLogoLink.setAttribute('data-link', ''); 
   textLogoLink.textContent = 'ft_transcendence';
-  textLogoLink.className = `
+  textLogoLink.className = ` 
     transition-all duration-300
     hover:scale-90 transform  text-xl font-bold`;
   leftItemsContainer.appendChild(textLogoLink);
@@ -49,7 +49,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
 
   // Conteneur pour les liens de navigation
   const navLinks = document.createElement('div');
-  navLinks.className = 'navbar-links'; // utilise le layer defini dans le style.css facon tailwind
+  navLinks.className = 'navbar-links '; // utilise le layer defini dans le style.css facon tailwind
   
   for (const path in routes) {
     const link = document.createElement('a');

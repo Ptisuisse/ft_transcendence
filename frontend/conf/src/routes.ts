@@ -71,7 +71,7 @@ const routes: { [key: string]: PageRenderFunction | string } = {
   for (const key in routes) {
     if (key === "/") navRoutesForNavbar[key] = "Home";
     else if (key === "/pong") navRoutesForNavbar[key] = "Pong";
-    else if (key === "/login") navRoutesForNavbar[key] = "Login";
+    // else if (key === "/login") navRoutesForNavbar[key] = "Login";
   }
 
   const navbar = createNavbar(navRoutesForNavbar); 

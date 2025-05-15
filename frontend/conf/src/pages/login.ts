@@ -3,13 +3,14 @@ import '../style.css';
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
   // Centrage vertical/horizontal
-  element.className = 'flex justify-center items-center min-h-screen';
+  element.className = 'Parent p-5';
+  //element.className = 'flex justify-center items-center min-h-screen';
 
   const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
 
   // Container principal
   const container = document.createElement('div');
-  container.className = 'bg-zinc-900 border-2 border-indigo-400 rounded-xl p-10 max-w-md mx-auto shadow-lg flex flex-col items-center';
+  container.className = 'md:mt-60 mt-20 bg-zinc-900 border-2 border-indigo-400 rounded-xl p-10 max-w-md mx-auto shadow-lg flex flex-col items-center';
 
   // Titre
   const title = document.createElement('h2');
@@ -85,6 +86,7 @@ export function LoginPage(): HTMLElement {
           profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg';
           statusMessage.appendChild(profileImg);
         }
+        console.log('auth reussite');
         const textNode = document.createElement('span');
         textNode.textContent = ` Signed in as: ${data.name}`;
         textNode.style.marginLeft = '10px';

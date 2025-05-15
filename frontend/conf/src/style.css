@@ -21,11 +21,11 @@ que tu utilises dans ton HTML directement
   font-family: 'Orbitron', sans-serif; /* Ajout de la police Orbitron */
 }
 
-/* #app {
-  padding-top: 4rem; /* Espace pour la barre de navigation fixe 
-  min-height: 100vh; /* S'assure que #app peut remplir la hauteur de la fenêtre 
-  box-sizing: border-box; /* Inclut padding et bordure dans la hauteur et largeur totales 
-} */
+#app {
+  padding-top: 4rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
 
 
 body {
@@ -51,7 +51,7 @@ body::before {
   background-repeat: repeat; 
   background-size: auto; 
   background-attachment: fixed; 
-  opacity: 0.01; 
+  opacity: 0.03; 
   pointer-events: none;
 }
 

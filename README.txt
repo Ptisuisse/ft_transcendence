@@ -12,7 +12,7 @@ NE PAS FAIRE :
 npm create vite@latest .
 commande standard pour démarrer un nouveau projet Vite.
 
-nmp install :  lire le package.json et installer 
+npm install :  lire le package.json et installer 
 toutes les dépendances dans un dossier node_modules à l'intérieur 
 de ton dossier frontend
 
@@ -30,3 +30,16 @@ DATABASE :
 
 FASTIFY : 
 https://www.npmjs.com/package/fastify
+
+COLOR :
+Neon blue = #646CFF
+Eerie black = #242424
+Periwinkle = #D4DCFF
+Xanthous = #FFC145
+Silver = #C3BABA
+Jet = #333333
+
+Aquamarine = #8CFBDE
+Coral = #FF7F51
+Spring green = #0FFF95
+https://coolors.co/e71d36-242424-333333-ff9f1c-dcc48e

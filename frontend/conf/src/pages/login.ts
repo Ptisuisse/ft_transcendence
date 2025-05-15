@@ -2,133 +2,119 @@ import '../style.css';
 
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
-  
-  // Set up client ID as a variable for reuse
-  const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
-  
-  element.innerHTML = `
-    <div class="login-container">
-      <h2>Login</h2>
-      <div id="g_id_onload"
-         data-client_id="${CLIENT_ID}"
-         data-context="signin"
-         data-ux_mode="popup"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
-      </div>
+  // Centrage vertical/horizontal
+  element.className = 'flex justify-center items-center min-h-screen';
 
-      <div class="g_id_signin"
-         data-type="standard"
-         data-shape="rectangular"
-         data-theme="outline"
-         data-text="signin_with"
-         data-size="large"
-         data-logo_alignment="left">
-      </div>
-      
-      <p id="status-message" style="color: white; margin-top: 10px;">Waiting for authentication...</p>
-      <button id="sign-out-button" style="margin-top: 20px; padding: 8px 16px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; display: none; ">Sign Out</button>
-    </div>
-  `;
-  
-  // Add event listener to sign-out button
-  const signOutButton = element.querySelector('#sign-out-button') as HTMLButtonElement;
-  if (signOutButton) {
-    signOutButton.addEventListener('click', () => {
-      signOut();
-    });
-  }
-  
-  // Add the Google Identity Services script
+  const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
+
+  // Container principal
+  const container = document.createElement('div');
+  container.className = 'bg-zinc-900 border-2 border-indigo-400 rounded-xl p-10 max-w-md mx-auto shadow-lg flex flex-col items-center';
+
+  // Titre
+  const title = document.createElement('h2');
+  title.className = 'text-3xl font-bold text-white mb-8';
+  title.innerText = 'Login';
+
+  // Google onload
+  const gIdOnload = document.createElement('div');
+  gIdOnload.id = 'g_id_onload';
+  gIdOnload.setAttribute('data-client_id', CLIENT_ID);
+  gIdOnload.setAttribute('data-context', 'signin');
+  gIdOnload.setAttribute('data-ux_mode', 'popup');
+  gIdOnload.setAttribute('data-callback', 'handleCredentialResponse');
+  gIdOnload.setAttribute('data-auto_prompt', 'false');
+
+  // Google Signin button
+  const gIdSignin = document.createElement('div');
+  gIdSignin.className = 'g_id_signin';
+  gIdSignin.setAttribute('data-type', 'standard');
+  gIdSignin.setAttribute('data-shape', 'rectangular');
+  gIdSignin.setAttribute('data-theme', 'outline');
+  gIdSignin.setAttribute('data-text', 'signin_with');
+  gIdSignin.setAttribute('data-size', 'large');
+  gIdSignin.setAttribute('data-logo_alignment', 'left');
+
+  // Status message
+  const statusMessage = document.createElement('p');
+  statusMessage.id = 'status-message';
+  statusMessage.className = 'text-white mt-4';
+  statusMessage.innerText = 'Waiting for authentication...';
+
+  // Sign out button
+  const signOutButton = document.createElement('button');
+  signOutButton.id = 'sign-out-button';
+  signOutButton.className = 'mt-6 px-6 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition hidden';
+  signOutButton.innerText = 'Sign Out';
+  signOutButton.addEventListener('click', () => signOut());
+
+  // Ajout des éléments au container
+  container.appendChild(title);
+  container.appendChild(gIdOnload);
+  container.appendChild(gIdSignin);
+  container.appendChild(statusMessage);
+  container.appendChild(signOutButton);
+
+  // Ajout du container à la page
+  element.appendChild(container);
+
+  // Ajout du script Google Identity Services
   const script = document.createElement('script');
   script.src = 'https://accounts.google.com/gsi/client';
   script.async = true;
   script.defer = true;
   document.head.appendChild(script);
-  
-  // Define the callback function for credential response in the global scope
-// Define the callback function for credential response in the global scope
+
+  // Callback global pour Google
   (window as any).handleCredentialResponse = (response: any) => {
     const jwt = response.credential;
 
     fetch('api/auth/google', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jwt })
     })
-    .then(res => res.json())
-    .then(data => {
-      console.log('Réponse backend:', data);
-      const statusMessage = document.getElementById('status-message');
-      if (statusMessage) {
+      .then(res => res.json())
+      .then(data => {
         statusMessage.innerHTML = '';
-        // Ajouter l'image si disponible
         if (data.picture) {
           const profileImg = document.createElement('img');
           profileImg.src = data.picture;
           profileImg.alt = "Profile picture";
           profileImg.id = "profile-picture";
-          profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg'; // Taille + marge + ombre
-          // Ajouter l'image au message de statut
+          profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg';
           statusMessage.appendChild(profileImg);
         }
-        // Ajouter le texte après l'image
         const textNode = document.createElement('span');
         textNode.textContent = ` Signed in as: ${data.name}`;
         textNode.style.marginLeft = '10px';
         statusMessage.appendChild(textNode);
-      }
-      // Show the sign-out button
-      const signOutButton = document.getElementById('sign-out-button');
-      if (signOutButton) {
+
         signOutButton.style.display = 'block';
-      }
-      // Hide the sign-in button
-      const signInButton = document.querySelector('.g_id_signin');
-      if (signInButton) {
-        (signInButton as HTMLElement).style.display = 'none';
-      }
+        gIdSignin.style.display = 'none';
+      })
+      .catch(error => {
+        console.error('Erreur lors de lenvoi au backend:', error);
+      });
 
-    })
-    .catch(error => {
-      console.error('Erreur lors de lenvoi au backend:', error);
-    });
-
-    const signInButton = document.querySelector('.g_id_signin');
-    if (signInButton) {
-      (signInButton as HTMLElement).style.display = 'none';
-    }
-    
-    // Show the sign-out button
-    const signOutButton = document.getElementById('sign-out-button');
-    if (signOutButton) {
-      signOutButton.style.display = 'block';
-    }
+    gIdSignin.style.display = 'none';
+    signOutButton.style.display = 'block';
   };
-  
+
   return element;
 }
 
-
 function signOut() {
-  // 1. Supprimer l'image de profil et le message
   const statusMessage = document.getElementById('status-message');
   if (statusMessage) {
     statusMessage.innerHTML = "Signed out";
   }
-
-  // 2. Cacher le bouton "Sign Out"
   const signOutButton = document.getElementById('sign-out-button');
   if (signOutButton) {
     signOutButton.style.display = 'none';
   }
-
-  // 3. Réafficher le bouton "Sign In"
   let signInButton = document.querySelector('.g_id_signin');
   if (!signInButton) {
-    // Si le bouton a été supprimé, on le recrée
     signInButton = document.createElement('div');
     signInButton.className = 'g_id_signin';
     signInButton.setAttribute('data-type', 'standard');
@@ -137,18 +123,12 @@ function signOut() {
     signInButton.setAttribute('data-text', 'signin_with');
     signInButton.setAttribute('data-size', 'large');
     signInButton.setAttribute('data-logo_alignment', 'left');
-    // On le place après le g_id_onload
     const onloadDiv = document.getElementById('g_id_onload');
     if (onloadDiv && onloadDiv.parentNode) {
       onloadDiv.parentNode.insertBefore(signInButton, onloadDiv.nextSibling);
     }
-    // Google Identity Services va automatiquement retransformer ce div en bouton
   } else {
     (signInButton as HTMLElement).style.display = 'block';
   }
-
-  // 4. (Optionnel) Révoquer le token Google côté client
-  // (Tu peux garder ce code si tu veux vraiment révoquer le token)
-
   console.log("User signed out");
 }

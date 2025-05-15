@@ -11,7 +11,7 @@ down:
 	docker network prune -f
 	@echo "Cleanup complete."
 
-re: down && up
+re: down up
 
 fclean: down
 

@@ -122,27 +122,3 @@ h2 {
   color: #ffffff;
   margin-bottom: 50px;
 }
-
-.login-container {
-  background-color: #2a2a2a;
-  border: 2px solid #646cff;
-  border-radius: 12px;
-  padding: 40px;
-  max-width: 400px;
-  margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(100, 108, 255, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.login-container h2 {
-  margin-top: 0;
-}
-
-.login-container #my-signin2 {
-  margin-top: 20px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}

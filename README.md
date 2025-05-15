@@ -32,10 +32,6 @@ Welcome to the ft_transcendence project! This guide will walk you through settin
     ```
     (Should output v20.x.x)
 
-### 🐳 Docker and Docker Compose
-
-- Ensure Docker and Docker Compose are installed on your system.
-
 ---
 
 ## 🛠️ Project Installation
@@ -87,24 +83,6 @@ Welcome to the ft_transcendence project! This guide will walk you through settin
 
 ---
 
-## 🚀 Running the Application with Docker
-
-- From the project root directory:
-    - **Start all services:**
-        ```sh
-        make up
-        ```
-    - **Stop all services:**
-        ```sh
-        make down
-        ```
-    - **Rebuild and restart:**
-        ```sh
-        make re
-        ```
-
----
-
 ## 👨‍💻 Development Mode (Local without Docker)
 
 ### Frontend Development
@@ -142,7 +120,7 @@ Welcome to the ft_transcendence project! This guide will walk you through settin
 
 ## 🎨 Color Palette
 
-- Palette inspiration: [https://coolors.co/e71d36-242424-333333-ff9f1c-dcc48e](https://coolors.co/e71d36-242424-333333-ff9f1c-dcc48e)
+- Palette inspiration: [https://coolors.co/](https://coolors.co/)
 
 ---
 
@@ -150,5 +128,3 @@ Welcome to the ft_transcendence project! This guide will walk you through settin
 
 - **Fastify:** Fast, low overhead web framework for Node.js.
 - **Tailwind CSS:** Utility-first CSS framework for rapid UI development.
-
-Happy coding! 🚀

@@ -115,3 +115,10 @@ body::before {
     @apply md:hidden absolute left-1/2 transform -translate-x-1/2 text-2xl z-10; /* Assurez-vous qu'il est au-dessus des autres éléments */
   }
 }
+
+h2 {
+  font-size: 2.5em;
+  line-height: 1.1;
+  color: #ffffff;
+  margin-bottom: 50px;
+}

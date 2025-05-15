@@ -75,53 +75,52 @@ Welcome to the ft_transcendence project! This guide will walk you through settin
 
 ### 2. Set Up Backend Project
 
-- **Install Backend Dependencies:**
+- **Create the Backend Project:**
     ```sh
-cd /path/to/your/ft_transcendence
-mkdir backend
-cd backend
+    cd /path/to/your/ft_transcendence
+    mkdir backend
+    cd backend
     ```
 - **Initialize the Backend Project:**
     ```sh
-npm init -y
-npm install fastify dotenv sqlite3
+    npm init -y
+    npm install fastify dotenv sqlite3
     ```
-- **Create a Basic Server: Create an index.js file with the following content::**
-    ```sh
-// backend/index.js
-require('dotenv').config();
-const fastify = require('fastify')({ logger: true });
+- **Create a Basic Server:** Create a file named `index.js` in the `backend` directory with the following content:
+    ```js
+    // backend/index.js
+    require('dotenv').config();
+    const fastify = require('fastify')({ logger: true });
 
-fastify.get('/', async (request, reply) => {
-  return { message: 'Hello from Fastify!' };
-});
+    fastify.get('/', async (request, reply) => {
+      return { message: 'Hello from Fastify!' };
+    });
 
-const start = async () => {
-  try {
-    await fastify.listen({ port: process.env.PORT || 3000 });
-    console.log(`🚀 Server is running at http://localhost:${process.env.PORT || 3000}`);
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
+    const start = async () => {
+      try {
+        await fastify.listen({ port: process.env.PORT || 3000 });
+        console.log(`🚀 Server is running at http://localhost:${process.env.PORT || 3000}`);
+      } catch (err) {
+        fastify.log.error(err);
+        process.exit(1);
+      }
+    };
 
-start();
+    start();
     ```
-- **Create Environment Configuration: Add a .env file with the following content:**
-    ```sh
-PORT=3000
-    ```  
-
+- **Create Environment Configuration:** Add a `.env` file in the `backend` directory with the following content:
+    ```env
+    PORT=3000
+    ```
 - **Run the Backend Server:**
     ```sh
-node index.js
-    ```  
+    node index.js
+    ```
+- **Test the Server:** Visit [http://localhost:3000](http://localhost:3000) in your browser, and you should see:
+    ```json
+    {"message":"Hello from Fastify!"}
+    ```
 
-- **Test the Server: Visit http://localhost:3000 in your browser, and you should see:**
-    ```sh
-{"message":"Hello from Fastify!"}
-    ``` 
 ---
 
 ## 👨‍💻 Development Mode (Local without Docker)

@@ -86,7 +86,6 @@ export function LoginPage(): HTMLElement {
           profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg';
           statusMessage.appendChild(profileImg);
         }
-        console.log('auth reussite');
         const textNode = document.createElement('span');
         textNode.textContent = ` Signed in as: ${data.name}`;
         textNode.style.marginLeft = '10px';

@@ -8,8 +8,8 @@ fastify.get('/', async (request, reply) => {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: process.env.PORT || 3000 });
-    console.log(`🚀 Server is running at http://localhost:${process.env.PORT || 3000}`);
+    await fastify.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' }); // MODIFIÉ ICI
+    console.log(`🚀 Server is running at http://0.0.0.0:${process.env.PORT || 3000}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

@@ -3,6 +3,7 @@ import { createNavbar } from './components/navbar.ts'
 import { HomePage } from './pages/main.ts';
 import { PongPage } from './pages/pong.ts';
 import { LoginPage } from './pages/login.ts';
+import { TeamPage } from './pages/team.ts';
 
 // Définition du type pour les fonctions de rendu de page
 type PageRenderFunction = () => string | HTMLElement;
@@ -12,6 +13,7 @@ const routes: { [key: string]: PageRenderFunction | string } = {
     "/": HomePage,
     "/pong": PongPage,
     "/login": LoginPage,
+    "/team" : TeamPage,
   };
 
   const navigateTo = (url: string) => {
@@ -71,7 +73,7 @@ const routes: { [key: string]: PageRenderFunction | string } = {
   for (const key in routes) {
     if (key === "/") navRoutesForNavbar[key] = "Home";
     else if (key === "/pong") navRoutesForNavbar[key] = "Pong";
-    // else if (key === "/login") navRoutesForNavbar[key] = "Login";
+    else if (key === "/team") navRoutesForNavbar[key] = "Team";
   }
 
   const navbar = createNavbar(navRoutesForNavbar); 

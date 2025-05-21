@@ -4,7 +4,7 @@ export function PongPage(): HTMLElement {
   const element = document.createElement('div');
   
   // Create game container with proper centering
-  element.className = 'Parent p-5';
+  element.className = 'flex justify-center items-center h-screen';
   
   // Create game border with relative positioning
   const border = document.createElement('div');
@@ -71,22 +71,22 @@ function setupPaddleMovement() {
     arrowdown: false
   };
   
-  // // Handle key down
-  // document.addEventListener('keydown', (event) => {
-  //   const key = event.key.toLowerCase();
-  //   if (key in keys) {
-  //     keys[key] = true;
-  //     event.preventDefault();
-  //   }
-  // });
+  // Handle key down
+  document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key as keyof typeof keys] = true;
+      event.preventDefault();
+    }
+  });
   
-  // // Handle key up
-  // document.addEventListener('keyup', (event) => {
-  //   const key = event.key.toLowerCase();
-  //   if (key in keys) {
-  //     keys[key] = false;
-  //   }
-  // });
+  // Handle key up
+  document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key as keyof typeof keys] = false;
+    }
+  });
   
   // Game loop to continuously update positions
   function gameLoop() {

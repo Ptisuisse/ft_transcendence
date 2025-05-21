@@ -1,14 +1,17 @@
-# Dockerfile Backend
+# Backend Dockerfile
 FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-COPY package*.json ./
+# Copy project files
+COPY ./ ./
 
-RUN npm install --omit=dev 
+# Install dependencies
+RUN npm install
 
-COPY . .
-
+# Expose port 3000
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+# Run the server
+CMD ["node", "index.js"]

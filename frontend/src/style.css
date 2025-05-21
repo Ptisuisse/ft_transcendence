@@ -1,15 +1,43 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
 @tailwind base;
-/* pour des styles globaux comme les polices, la normalisation, 
-ou la configuration de base des éléments HTML. */
-
 @tailwind components;
-/* pour créer des composants réutilisables 
-et spécifiques comme des boutons, des cartes, etc*/
 @tailwind utilities;
-/* pour des classes utilitaires personnalisées 
-que tu utilises dans ton HTML directement 
-(par exemple, des classes pour des marges, alignements, ou ombres).*/
+
+@property --animated-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* 2. Keyframes pour animer --animated-angle */
+@keyframes animateGradient {
+  to {
+    --animated-angle: 360deg;
+  }
+}
+
+.card::after, .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* MODIFIÉ ICI: Utiliser calc() avec --gradient-offset et --animated-angle */
+  background-image: conic-gradient(
+    from calc(var(--gradient-offset, 0deg) + var(--animated-angle)),
+    #a855f7, /* Purple */
+    #ec4899, /* Pink */
+    #22d3ee, /* Cyan */
+    #a855f7  /* Purple à nouveau pour une boucle fluide */
+  );
+  z-index: -1;
+  /* MODIFIÉ ICI: Appeler la bonne animation */
+  animation: animateGradient var(--spin-duration, 3s) linear infinite;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.card::before {
+  filter: blur(1.5rem);
+  opacity: 0.5;
+}
 
 
 :root {

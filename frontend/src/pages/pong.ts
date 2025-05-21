@@ -8,7 +8,7 @@ export function PongPage(): HTMLElement {
   
   // Create game border with relative positioning
   const border = document.createElement('div');
-  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] bg-gray-900 relative';
+  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] relative';
   border.id = 'game-container';
   
   // Create left paddle with absolute positioning
@@ -72,21 +72,21 @@ function setupPaddleMovement() {
   };
   
   // // Handle key down
-  // document.addEventListener('keydown', (event) => {
-  //   const key = event.key.toLowerCase();
-  //   if (key in keys) {
-  //     keys[key] = true;
-  //     event.preventDefault();
-  //   }
-  // });
+  document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key] = true;
+      event.preventDefault();
+    }
+  });
   
-  // // Handle key up
-  // document.addEventListener('keyup', (event) => {
-  //   const key = event.key.toLowerCase();
-  //   if (key in keys) {
-  //     keys[key] = false;
-  //   }
-  // });
+  // Handle key up
+  document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key] = false;
+    }
+  });
   
   // Game loop to continuously update positions
   function gameLoop() {

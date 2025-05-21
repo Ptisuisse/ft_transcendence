@@ -4,11 +4,11 @@ export function PongPage(): HTMLElement {
   const element = document.createElement('div');
   
   // Create game container with proper centering
-  element.className = 'Parent p-5';
+  element.className = 'flex justify-center items-center h-screen';
   
   // Create game border with relative positioning
   const border = document.createElement('div');
-  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] relative';
+  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] bg-gray-900 relative';
   border.id = 'game-container';
   
   // Create left paddle with absolute positioning
@@ -71,11 +71,11 @@ function setupPaddleMovement() {
     arrowdown: false
   };
   
-  // // Handle key down
+  // Handle key down
   document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
     if (key in keys) {
-      keys[key] = true;
+      keys[key as keyof typeof keys] = true;
       event.preventDefault();
     }
   });
@@ -84,7 +84,7 @@ function setupPaddleMovement() {
   document.addEventListener('keyup', (event) => {
     const key = event.key.toLowerCase();
     if (key in keys) {
-      keys[key] = false;
+      keys[key as keyof typeof keys] = false;
     }
   });
   

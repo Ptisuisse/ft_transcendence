@@ -81,7 +81,7 @@ function ProfilData(data: CardData): HTMLElement {
 
 export function TeamPage(): HTMLElement {
     const mainContainer = document.createElement('div');
-    mainContainer.className = 'Parent p-5';
+    mainContainer.className = 'Parent p-5 flex flex flex-col items-center';
 
     const pageTitle = document.createElement('h1');
     pageTitle.className = `

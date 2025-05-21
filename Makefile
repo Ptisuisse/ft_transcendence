@@ -1,7 +1,7 @@
 
 up:
 	@echo "Starting Docker services ..."
-	docker-compose up -d
+	docker-compose up -d --build
 
 down:
 	@echo "Stopping Docker services from ..."

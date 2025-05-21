@@ -9,8 +9,14 @@ const options = {}
 module.exports = async function (fastify, opts) {
   // Place here your custom code!
 
-  // Do not touch the following lines
+  // Enregistrement manuel de la route auth.js
+  fastify.register(require('./routes/auth'));
 
+  // Do not touch the following lines
+  fastify.ready(err => {
+    if (err) throw err;
+    console.log(fastify.printRoutes());
+  });
   // This loads all plugins defined in plugins
   // those should be support plugins that are reused
   // through your application

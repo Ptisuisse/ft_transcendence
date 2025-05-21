@@ -5,7 +5,7 @@ const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleuser
 const client = new OAuth2Client(CLIENT_ID); // <-- AJOUTE CETTE LIGNE
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/api/auth/google', async function (request, reply) {
+  fastify.post('/auth/google', async function (request, reply) {
     const { jwt } = request.body;
 
     try {
@@ -16,7 +16,8 @@ module.exports = async function (fastify, opts) {
       const payload = ticket.getPayload();
       const { sub, email, name, picture } = payload;
 
-      return { ok: true, sub, email, name, picture };
+      // Retourner uniquement le nom et la photo au frontend
+      return { name, picture };
     } catch (err) {
       reply.code(401).send({ ok: false, message: 'Token Google invalide', error: err.message });
     }

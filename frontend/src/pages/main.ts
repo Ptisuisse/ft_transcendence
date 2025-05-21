@@ -10,7 +10,7 @@ interface CardData {
 
 function createImageCard(data: CardData): HTMLElement {
 	const cardContainer = document.createElement('div');
-	cardContainer.className = 'my-4 text-white flex flex-col items-center md:mb-10 border border-red-900';
+	cardContainer.className = 'my-10 text-white flex flex-col items-center md:mb-10';
 
 	const imageWrapper = document.createElement('div');
 	imageWrapper.className = 'relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
@@ -26,20 +26,20 @@ function createImageCard(data: CardData): HTMLElement {
 	const title = document.createElement('h1');
 	title.innerText = data.titleText;
 	// Positionné en haut, centré, initialement invisible
-	title.className = 'absolute top-4 left-1/2 -translate-x-1/2 text-2xl font-bold text-white opacity-0 invisible transition-all duration-300 ease-in-out z-10';
+	title.className = 'absolute top-4 left-1/2 -translate-x-1/2 text-2xl font-bold text-cyan-300 opacity-0 invisible transition-all duration-300 ease-in-out z-10';
 
 	// Description - maintenant à l'intérieur de imageWrapper
 	const description = document.createElement('p');
 	description.innerText = data.descriptionText;
 	// Positionné sous le titre, centré, initialement invisible
-	description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 text-sm text-gray-200 opacity-0 invisible transition-all duration-300 ease-in-out z-10 px-4 text-center';
+	description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 text-m font-bold text-pink-400 opacity-0 invisible transition-all duration-300 ease-in-out z-10 px-4 text-center';
 	
 	const playLink = document.createElement('a');
 	playLink.href = data.linkHref;
 	playLink.setAttribute('data-link', '');
 	playLink.innerText = 'PLAY';
 	// Ajout de -translate-y-1/2 pour un centrage vertical correct
-	playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold px-8 py-2 text-white outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-purple-500 hover:outline-0 cursor-pointer opacity-0 invisible transition-all duration-100 ease-in-out z-10';
+	playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold px-8 py-2 text-purple-400 hover:text-pink-900 font-semibold  outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-cyan-500 hover:outline-0 cursor-pointer opacity-0 invisible transition-all duration-100 ease-in-out z-10';
 	
 	imageWrapper.appendChild(image);
 	imageWrapper.appendChild(overlay);
@@ -91,6 +91,22 @@ export function HomePage(): HTMLElement {
 	const mainContainer = document.createElement('div');
 	mainContainer.className = 'Parent p-5';
 
+	const titleContainer = document.createElement('div');
+	titleContainer.className = 'w-full text-center mt-4';
+
+	const pageTitle = document.createElement('h1');
+    pageTitle.className = `
+        text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r 
+        from-purple-500 via-pink-500 to-cyan-400 
+        tracking-wide /* Modifié de tracking-normal à tracking-wide */
+        [filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.5))_drop-shadow(0_2px_2px_rgba(0,0,0,0.3))]
+        md:text-6xl
+        inline-block 
+    `;
+    pageTitle.textContent = 'Welcome';
+
+	titleContainer.appendChild(pageTitle);
+
 	const cardDataList: CardData[] = [
 		{
 			imageUrl: '/pong.jpg',
@@ -111,12 +127,12 @@ export function HomePage(): HTMLElement {
 			linkHref: '/pong'
 		}
 	];
-
+	
+	mainContainer.appendChild(titleContainer);
 	cardDataList.forEach(data => {
 		const card = createImageCard(data);
 		mainContainer.appendChild(card);
 	});
-
 	// const separator = document.createElement('div');
 	// separator.className = 'w-3/4 mx-auto border-t border-purple-300 mt-8 lg:-mt-20';
 	// mainContainer.appendChild(separator);

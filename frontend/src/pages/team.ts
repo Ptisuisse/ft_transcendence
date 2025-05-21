@@ -5,6 +5,7 @@ interface CardData {
     name: string;
     contributions: string[];
     classe: string;
+    borderStart: string;
 }
 
 function ProfilData(data: CardData): HTMLElement {
@@ -13,12 +14,14 @@ function ProfilData(data: CardData): HTMLElement {
 
     const borderContainer = document.createElement('div');
     borderContainer.className = `
-        w-40 h-44 
-        [clip-path:polygon(50%_0%,_100%_25%,_100%_75%,_50%_100%,_0%_75%,_0%_25%)]
-        p-1 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500
+        card
+        w-40 h-44
+        p-1
         relative 
     `;
-
+    if (data.borderStart) {
+        borderContainer.style.setProperty('--gradient-offset', data.borderStart);
+    }
     const imageContainer = document.createElement('div');
     imageContainer.className = `
         w-full h-full 
@@ -43,6 +46,7 @@ function ProfilData(data: CardData): HTMLElement {
         rounded-lg 
         shadow-lg shadow-cyan-500/30
         text-sm
+        text-left 
     `;
 
     const nameElement = document.createElement('h3');
@@ -83,8 +87,9 @@ export function TeamPage(): HTMLElement {
     pageTitle.className = `
         text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r 
         from-purple-500 via-pink-500 to-cyan-400 
-        mb-12 tracking-normal
-        [text-shadow:0_0_10px_rgba(236,72,153,0.3),_0_0_20px_rgba(168,85,247,0.2)]
+        my-2
+        tracking-normal
+        [filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.5))_drop-shadow(0_2px_2px_rgba(0,0,0,0.3))]
         md:text-6xl
     `;
     pageTitle.textContent = 'Meet the Team';
@@ -102,7 +107,8 @@ export function TeamPage(): HTMLElement {
                 'UI/UX Design for Team Page',
                 'Docker Configuration'
             ],
-            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-0 translate-y-[-10%]'
+            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-0 translate-y-[-10%]',
+            borderStart: '0deg'
         },
         {
             imagesrc: 'https://cdn.intra.42.fr/users/e983d6f2f963251a6d749de8f454998b/ppitzini.jpg',
@@ -112,7 +118,8 @@ export function TeamPage(): HTMLElement {
                 'Database Management',
                 'API Endpoints'
             ],
-            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-10%] translate-y-[-10%]'
+            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-10%] translate-y-[-10%]',
+            borderStart: '120deg'
         },
         {
             imagesrc: 'https://cdn.intra.42.fr/users/8b9c58a0398280e28a4ecd1ec9d167db/pirulenc.jpg',
@@ -122,7 +129,8 @@ export function TeamPage(): HTMLElement {
                 'Real-time Communication (WebSockets)',
                 'Security Hardening'
             ],
-            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-15%] translate-y-[-10%]'
+            classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-15%] translate-y-[-10%]',
+            borderStart: '240deg'
         }
     ];
 

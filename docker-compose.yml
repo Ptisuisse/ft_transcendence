@@ -33,7 +33,9 @@ services:
       - ft_network
 
   nginx:
-    build: ./nginx
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     container_name: ft_nginx
     ports:
       - "80:80"
@@ -50,5 +52,5 @@ networks:
   ft_network:
     driver: bridge
 
-volumes: # AJOUTER CETTE SECTION EN HAUT OU EN BAS DU FICHIER
+volumes:
   shared_db_data:

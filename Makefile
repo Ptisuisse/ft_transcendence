@@ -1,7 +1,7 @@
 
 up:
 	@echo "Starting Docker services ..."
-	docker-compose up -d
+	docker-compose up -d --build
 
 down:
 	@echo "Stopping Docker services from ..."
@@ -11,7 +11,7 @@ down:
 	docker network prune -f
 	@echo "Cleanup complete."
 
-re: down && up
+re: down up
 
 fclean: down
 

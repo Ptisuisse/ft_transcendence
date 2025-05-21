@@ -1,5 +1,9 @@
-FROM nginx:stable-alpine
+FROM nginx:alpine
 
-RUN rm /etc/nginx/conf.d/default.conf
+# Copier la configuration personnalisée de Nginx
+COPY ./default.conf /etc/nginx/conf.d/default.conf
 
-COPY conf/default.conf /etc/nginx/conf.d/default.conf
+# Exposer le port 80
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

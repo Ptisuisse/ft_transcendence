@@ -1,9 +1,21 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY ./frontend/package.json ./package.json
+
+RUN npm install
+
+COPY ./frontend ./
+
+RUN npm run build
+
 FROM nginx:alpine
 
-# Copier la configuration personnalisée de Nginx
-COPY ./default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Exposer le port 80
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

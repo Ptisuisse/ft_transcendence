@@ -4,7 +4,6 @@ export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
   // Centrage vertical/horizontal
   element.className = 'Parent p-5';
-  //element.className = 'flex justify-center items-center min-h-screen';
 
   const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
 
@@ -35,6 +34,7 @@ export function LoginPage(): HTMLElement {
   gIdSignin.setAttribute('data-text', 'signin_with');
   gIdSignin.setAttribute('data-size', 'large');
   gIdSignin.setAttribute('data-logo_alignment', 'left');
+  gIdSignin.style.display = 'block';
 
   // Status message
   const statusMessage = document.createElement('p');
@@ -45,8 +45,9 @@ export function LoginPage(): HTMLElement {
   // Sign out button
   const signOutButton = document.createElement('button');
   signOutButton.id = 'sign-out-button';
-  signOutButton.className = 'mt-6 px-6 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition hidden';
+  signOutButton.className = 'mt-6 px-6 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition';
   signOutButton.innerText = 'Sign Out';
+  signOutButton.style.display = 'none';
   signOutButton.addEventListener('click', () => signOut());
 
   // Ajout des éléments au container
@@ -59,15 +60,19 @@ export function LoginPage(): HTMLElement {
   // Ajout du container à la page
   element.appendChild(container);
 
-  // Ajout du script Google Identity Services
-  const script = document.createElement('script');
-  script.src = 'https://accounts.google.com/gsi/client';
-  script.async = true;
-  script.defer = true;
-  document.head.appendChild(script);
+  // Ajout du script Google Identity Services (une seule fois)
+  if (!document.getElementById('google-gsi-script')) {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.id = 'google-gsi-script';
+    document.head.appendChild(script);
+  }
 
   // Callback global pour Google
   (window as any).handleCredentialResponse = (response: any) => {
+    console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
     fetch('api/auth/google', {
@@ -75,8 +80,12 @@ export function LoginPage(): HTMLElement {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jwt })
     })
-      .then(res => res.json())
+      .then(res => {
+        console.log('[Login] Backend responded to /api/auth/google', res);
+        return res.json();
+      })
       .then(data => {
+        console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
         if (data.picture) {
           const profileImg = document.createElement('img');
@@ -85,6 +94,9 @@ export function LoginPage(): HTMLElement {
           profileImg.id = "profile-picture";
           profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg';
           statusMessage.appendChild(profileImg);
+          console.log('[Login] Profile image appended');
+        } else {
+          console.log('[Login] No profile image in data');
         }
         const textNode = document.createElement('span');
         textNode.textContent = ` Signed in as: ${data.name}`;
@@ -95,11 +107,11 @@ export function LoginPage(): HTMLElement {
         gIdSignin.style.display = 'none';
       })
       .catch(error => {
-        console.error('Erreur lors de lenvoi au backend:', error);
+        statusMessage.innerText = 'Authentication failed.';
+        signOutButton.style.display = 'none';
+        gIdSignin.style.display = 'block';
+        console.error('[Login] Erreur lors de lenvoi au backend:', error);
       });
-
-    gIdSignin.style.display = 'none';
-    signOutButton.style.display = 'block';
   };
 
   return element;
@@ -114,22 +126,14 @@ function signOut() {
   if (signOutButton) {
     signOutButton.style.display = 'none';
   }
-  let signInButton = document.querySelector('.g_id_signin');
-  if (!signInButton) {
-    signInButton = document.createElement('div');
-    signInButton.className = 'g_id_signin';
-    signInButton.setAttribute('data-type', 'standard');
-    signInButton.setAttribute('data-shape', 'rectangular');
-    signInButton.setAttribute('data-theme', 'outline');
-    signInButton.setAttribute('data-text', 'signin_with');
-    signInButton.setAttribute('data-size', 'large');
-    signInButton.setAttribute('data-logo_alignment', 'left');
-    const onloadDiv = document.getElementById('g_id_onload');
-    if (onloadDiv && onloadDiv.parentNode) {
-      onloadDiv.parentNode.insertBefore(signInButton, onloadDiv.nextSibling);
-    }
-  } else {
-    (signInButton as HTMLElement).style.display = 'block';
+  const signInButton = document.querySelector('.g_id_signin') as HTMLElement | null;
+  if (signInButton) {
+    signInButton.style.display = 'block';
+  }
+  // Supprimer la photo de profil si présente
+  const profileImg = document.getElementById('profile-picture');
+  if (profileImg && profileImg.parentNode) {
+    profileImg.parentNode.removeChild(profileImg);
   }
   console.log("User signed out");
 }

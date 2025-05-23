@@ -16,15 +16,34 @@ module.exports = async function (fastify, opts) {
     });
   });
 
-  // Example: Add a new user (ensure your table structure matches)
-  fastify.post('/users', async function (request, reply) {
-    const { first_name, last_name, username, password, email } = request.body;
-    const sql = 'INSERT INTO users(first_name, last_name, username, password, email) VALUES (?,?,?,?,?)';
-    
+  // Route GET pour lister tous les utilisateurs
+  fastify.get('/users', async function (request, reply) {
     return new Promise((resolve, reject) => {
-      fastify.db.run(sql, [first_name, last_name, username, password, email], function(err) {
+      fastify.db.all('SELECT id, username, email FROM users', [], (err, rows) => {
         if (err) {
           request.log.error(err);
+          return reject(new Error('Error querying users'));
+        }
+        resolve({ users: rows });
+      });
+    });
+  });
+
+  // Route POST pour ajouter un utilisateur (username et email uniquement)
+  fastify.post('/users', async function (request, reply) {
+    const { username, email } = request.body;
+    if (!username || !email) {
+      reply.code(400).send({ error: 'username and email are required' });
+      return;
+    }
+    const sql = 'INSERT INTO users(username, email) VALUES (?, ?)';
+    return new Promise((resolve, reject) => {
+      fastify.db.run(sql, [username, email], function(err) {
+        if (err) {
+          request.log.error(err);
+          if (err.message.includes('UNIQUE')) {
+            return reject(fastify.httpErrors.conflict('Email already exists'));
+          }
           return reject(new Error('Error inserting user'));
         }
         resolve({ message: 'User created', userId: this.lastID });

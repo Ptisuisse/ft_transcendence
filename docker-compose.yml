@@ -15,7 +15,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-      - shared_db_data:/db_data
+
     env_file:
       - ./backend/.env
     depends_on:
@@ -27,8 +27,8 @@ services:
   db:
     build: ./DataBase
     container_name: ft_db
-    volumes:
-      - shared_db_data:/usr/src/app
+    ports:
+      - "4000:4000"
     networks:
       - ft_network
 
@@ -52,5 +52,3 @@ networks:
   ft_network:
     driver: bridge
 
-volumes:
-  shared_db_data:

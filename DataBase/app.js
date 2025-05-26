@@ -31,22 +31,19 @@ fastify.post('/users', async (request, reply) => {
     const { username, email } = request.body;
     db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
         if (err) {
-            reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
-            return;
+            return reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
         }
         if (row) {
-            reply.code(409).send({ ok: false, message: 'Email already exists' });
-            return;
+            return reply.code(409).send({ ok: false, message: 'Email already exists' });
         }
         db.run(
             'INSERT INTO users(username, email) VALUES (?, ?)',
             [username, email],
             function (err) {
                 if (err) {
-                    reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
-                    return;
+                    return reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
                 }
-                reply.send({ ok: true });
+                return reply.send({ ok: true });
             }
         );
     });
@@ -73,11 +70,11 @@ fastify.get('/users/:email', async (request, reply) => {
 // Route pour lister tous les utilisateurs (seulement id, username, email)
 fastify.get('/users', async (request, reply) => {
     db.all('SELECT id, username, email FROM users', [], (err, rows) => {
+        console.log('Résultat SQL /users:', rows);
         if (err) {
-            reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
-            return;
+            return reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
         }
-        reply.send(rows);
+        return reply.send(rows);
     });
 });
 

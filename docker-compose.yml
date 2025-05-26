@@ -29,6 +29,8 @@ services:
     container_name: ft_db
     ports:
       - "4000:4000"
+    volumes:
+      - ./DataBase/data:/usr/src/app/data
     networks:
       - ft_network
 

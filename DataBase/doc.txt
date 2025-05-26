@@ -1,0 +1,10 @@
+sqlite3 DataBase/data/database.db
+
+.headers on
+.mode column
+.tables
+
+SELECT * FROM users;
+
+
+sqlitebrowser

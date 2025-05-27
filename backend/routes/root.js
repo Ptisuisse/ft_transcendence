@@ -1,7 +1,11 @@
 // filepath: backend/routes/root.js
 'use strict'
 
+const authenticate = require('../plugins/authenticate');
+
 module.exports = async function (fastify, opts) {
+  fastify.addHook('preHandler', authenticate);
+
   fastify.get('/', async function (request, reply) {
     // Exemple : requête vers l'API du service db pour vérifier la connexion
     try {

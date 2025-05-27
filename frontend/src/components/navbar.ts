@@ -22,27 +22,28 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   // image login droit
   const loginImageLink = document.createElement('a');
   loginImageLink.href = '/login';
+  loginImageLink.innerText= 'Login';
   loginImageLink.setAttribute('data-link', '');
   
-  const loginImg = document.createElement('img');
-  const defaultLoginSrc = '/login.png';
-  const hoverLoginSrc = '/hover_login.png';
+  // const loginImg = document.createElement('img');
+  // const defaultLoginSrc = '/login.png';
+  // const hoverLoginSrc = '/hover_login.png';
 
-  loginImg.src = defaultLoginSrc; 
-  loginImg.alt = 'Login';
-  loginImg.className = 'h-7 w-auto';
+  // loginImg.src = defaultLoginSrc; 
+  // loginImg.alt = 'Login';
+  // loginImg.className = 'h-7 w-auto';
 
-  loginImageLink.addEventListener('mouseenter', () => {
-    loginImg.src = hoverLoginSrc;
-    loginImg.className = `h-8 w-auto`;
-  });
+  // loginImageLink.addEventListener('mouseenter', () => {
+  //   loginImg.src = hoverLoginSrc;
+  //   loginImg.className = `h-8 w-auto`;
+  // });
 
-  loginImageLink.addEventListener('mouseleave', () => {
-    loginImg.src = defaultLoginSrc;
-    loginImg.className = 'h-7 w-auto';
-  });
+  // loginImageLink.addEventListener('mouseleave', () => {
+  //   loginImg.src = defaultLoginSrc;
+  //   loginImg.className = 'h-7 w-auto';
+  // });
   
-  loginImageLink.appendChild(loginImg);
+  //loginImageLink.appendChild(loginImg);
   rightItemsContainer.appendChild(loginImageLink);
   nav.appendChild(rightItemsContainer);
   nav.appendChild(leftItemsContainer);

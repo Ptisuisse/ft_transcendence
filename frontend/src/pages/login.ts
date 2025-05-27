@@ -1,3 +1,6 @@
+import '../style.css';
+import { navigateTo } from '../routes';
+
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
   // Centrage vertical/horizontal
@@ -78,18 +81,26 @@ export function LoginPage(): HTMLElement {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jwt })
     })
-      .then(res => {
-        console.log('[Login] Backend responded to /api/auth/google', res);
-        return res.json();
-      })
-      .then(data => {
-        console.log('[Login] Data received from backend:', data);
-        statusMessage.innerHTML = '';
-        if (data.token) {
-          localStorage.setItem('token', data.token); // Stocke le token maison dans le localStorage
-        }
-        if (data.picture) {
-          const profileImg = document.createElement('img');
+    .then(res => {
+      console.log('[Login] Backend responded to /api/auth/google', res);
+      if (!res.ok) {
+        return res.json().then(errData => {
+          throw new Error(errData.message || 'Authentication failed');
+        });
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log('[Login] Data received from backend:', data);
+      // Stocker l'état de connexion
+      localStorage.setItem('userName', data.name);
+      if (data.picture) {
+        localStorage.setItem('userPicture', data.picture);
+      }
+
+      statusMessage.innerHTML = '';
+      if (data.picture) {
+        const profileImg = document.createElement('img');
           profileImg.src = data.picture;
           profileImg.alt = "Profile picture";
           profileImg.id = "profile-picture";
@@ -106,6 +117,7 @@ export function LoginPage(): HTMLElement {
 
         signOutButton.style.display = 'block';
         gIdSignin.style.display = 'none';
+        navigateTo('/');
       })
       .catch(error => {
         statusMessage.innerText = 'Authentication failed.';
@@ -136,7 +148,10 @@ export function LoginPage(): HTMLElement {
 }
 
 function signOut() {
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userPicture');
   localStorage.removeItem('token'); // Supprime le token à la déconnexion
+
   const statusMessage = document.getElementById('status-message');
   if (statusMessage) {
     statusMessage.innerHTML = "Signed out";
@@ -155,4 +170,5 @@ function signOut() {
     profileImg.parentNode.removeChild(profileImg);
   }
   console.log("User signed out");
+  navigateTo('/login');
 }

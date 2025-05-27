@@ -1,4 +1,3 @@
-
 import '../style.css';
 
 interface CardData {
@@ -11,7 +10,6 @@ interface CardData {
 interface ImageWrapperElement extends HTMLElement {
     customHideEffects?: () => void;
 }
-
 function createImageCard(data: CardData): HTMLElement {
     const cardContainer = document.createElement('div');
     cardContainer.className = 'my-10 text-white flex flex-col items-center md:mb-10';
@@ -19,6 +17,7 @@ function createImageCard(data: CardData): HTMLElement {
     const imageWrapper = document.createElement('div') as ImageWrapperElement;
     imageWrapper.className = 'js-image-card-wrapper relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
     imageWrapper.dataset.toggled = 'false';
+    imageWrapper.setAttribute('tabindex', '0');
 
     const image = document.createElement('img');
     image.src = data.imageUrl;
@@ -30,18 +29,19 @@ function createImageCard(data: CardData): HTMLElement {
 
     const title = document.createElement('h1');
     title.innerText = data.titleText;
-    title.className = 'absolute top-4 left-1/2 -translate-x-1/2 text-2xl font-bold text-cyan-300 opacity-0 invisible transition-all duration-300 ease-in-out z-10';
+    title.className = 'absolute top-4 left-1/2 -translate-x-1/2 text-2xl font-bold text-cyan-300 opacity-0 transition-all duration-300 ease-in-out z-10';
 
     const description = document.createElement('p');
     description.innerText = data.descriptionText;
-    description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 text-m font-bold text-pink-400 opacity-0 invisible transition-all duration-300 ease-in-out z-10 px-4 text-center';
+    description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 text-m font-bold text-pink-400 opacity-0 transition-all duration-300 ease-in-out z-10 px-4 text-center';
     
     const playLink = document.createElement('a');
     playLink.href = data.linkHref;
     playLink.setAttribute('data-link', '');
     playLink.innerText = 'PLAY';
-    playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold px-8 py-2 text-purple-400 hover:text-pink-900 font-semibold  outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-cyan-500 hover:outline-0 cursor-pointer opacity-0 invisible transition-all duration-100 ease-in-out z-10';
-    
+    playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold px-8 py-2 text-purple-400 hover:text-pink-900 font-semibold outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-cyan-500 hover:outline-0 cursor-pointer opacity-0 transition-all duration-100 ease-in-out z-10';
+    playLink.style.pointerEvents = 'none';
+
     imageWrapper.appendChild(image);
     imageWrapper.appendChild(overlay);
     imageWrapper.appendChild(title);
@@ -53,12 +53,13 @@ function createImageCard(data: CardData): HTMLElement {
         imageWrapper.classList.remove('shadow-lg','shadow-indigo-400/100');
         overlay.classList.remove('opacity-0'); 
         overlay.classList.add('opacity-40');
-        title.classList.remove('opacity-0', 'invisible');
-        title.classList.add('opacity-100', 'visible');
-        description.classList.remove('opacity-0', 'invisible');
-        description.classList.add('opacity-100', 'visible');
-        playLink.classList.remove('opacity-0', 'invisible');
-        playLink.classList.add('opacity-100', 'visible');
+        title.classList.remove('opacity-0');
+        title.classList.add('opacity-100');
+        description.classList.remove('opacity-0');
+        description.classList.add('opacity-100');
+        playLink.classList.remove('opacity-0');
+        playLink.classList.add('opacity-100');
+        playLink.style.pointerEvents = 'auto';
     };
 
     const hideEffects = () => {
@@ -66,12 +67,13 @@ function createImageCard(data: CardData): HTMLElement {
         imageWrapper.classList.add('shadow-lg' , 'shadow-indigo-400/100');
         overlay.classList.remove('opacity-40');
         overlay.classList.add('opacity-0'); 
-        title.classList.remove('opacity-100', 'visible');
-        title.classList.add('opacity-0', 'invisible');
-        description.classList.remove('opacity-100', 'visible');
-        description.classList.add('opacity-0', 'invisible');
-        playLink.classList.remove('opacity-100', 'visible');
-        playLink.classList.add('opacity-0', 'invisible');
+        title.classList.remove('opacity-100');
+        title.classList.add('opacity-0');
+        description.classList.remove('opacity-100');
+        description.classList.add('opacity-0');
+        playLink.classList.remove('opacity-100');
+        playLink.classList.add('opacity-0');
+        playLink.style.pointerEvents = 'none';
     };
 
     imageWrapper.customHideEffects = hideEffects;
@@ -87,6 +89,64 @@ function createImageCard(data: CardData): HTMLElement {
             hideEffects();
         }
     });
+
+    imageWrapper.addEventListener('focusin', () => {
+        if (imageWrapper.dataset.toggled === 'false') {
+            showEffects();
+        }
+    });
+
+    imageWrapper.addEventListener('focusout', (event: FocusEvent) => {
+        if (imageWrapper.dataset.toggled === 'false' && !imageWrapper.contains(event.relatedTarget as Node)) {
+            hideEffects();
+        }
+    });
+    
+    imageWrapper.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {           
+            const isCurrentlyToggled = imageWrapper.dataset.toggled === 'true';
+            const isPlayLinkFocused = document.activeElement === playLink;
+
+            if (isPlayLinkFocused) {
+                if (!isCurrentlyToggled) {
+                    document.querySelectorAll('.js-image-card-wrapper').forEach(otherWrapperNode => {
+                        const otherWrapper = otherWrapperNode as ImageWrapperElement;
+                        if (otherWrapper !== imageWrapper && otherWrapper.dataset.toggled === 'true') {
+                            if (otherWrapper.customHideEffects) {
+                                otherWrapper.customHideEffects();
+                            }
+                            otherWrapper.dataset.toggled = 'false';
+                        }
+                    });
+                    showEffects();
+                    imageWrapper.dataset.toggled = 'true';
+                }
+                return; 
+            }
+
+            event.preventDefault(); 
+
+            document.querySelectorAll('.js-image-card-wrapper').forEach(otherWrapperNode => {
+                const otherWrapper = otherWrapperNode as ImageWrapperElement;
+                if (otherWrapper !== imageWrapper && otherWrapper.dataset.toggled === 'true') {
+                    if (otherWrapper.customHideEffects) {
+                        otherWrapper.customHideEffects();
+                    }
+                    otherWrapper.dataset.toggled = 'false';
+                }
+            });
+
+            if (isCurrentlyToggled) {
+                hideEffects();
+                imageWrapper.dataset.toggled = 'false';
+            } else {
+                showEffects();
+                imageWrapper.dataset.toggled = 'true';
+                playLink.focus();
+            }
+        }
+    });
+
 
     imageWrapper.addEventListener('click', (event) => {
         const isCurrentlyToggled = imageWrapper.dataset.toggled === 'true';

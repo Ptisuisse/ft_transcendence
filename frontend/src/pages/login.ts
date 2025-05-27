@@ -1,5 +1,3 @@
-import '../style.css';
-
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
   // Centrage vertical/horizontal
@@ -87,6 +85,9 @@ export function LoginPage(): HTMLElement {
       .then(data => {
         console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
+        if (data.token) {
+          localStorage.setItem('token', data.token); // Stocke le token maison dans le localStorage
+        }
         if (data.picture) {
           const profileImg = document.createElement('img');
           profileImg.src = data.picture;
@@ -114,10 +115,28 @@ export function LoginPage(): HTMLElement {
       });
   };
 
+  // Vérifie l'état de connexion au chargement de la page
+  function updateLoginUI() {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Utilisateur déjà connecté
+      statusMessage.innerHTML = '<span>Déjà connecté</span>';
+      signOutButton.style.display = 'block';
+      gIdSignin.style.display = 'none';
+    } else {
+      // Pas connecté
+      statusMessage.innerText = 'Waiting for authentication...';
+      signOutButton.style.display = 'none';
+      gIdSignin.style.display = 'block';
+    }
+  }
+  updateLoginUI();
+
   return element;
 }
 
 function signOut() {
+  localStorage.removeItem('token'); // Supprime le token à la déconnexion
   const statusMessage = document.getElementById('status-message');
   if (statusMessage) {
     statusMessage.innerHTML = "Signed out";

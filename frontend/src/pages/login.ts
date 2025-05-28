@@ -106,6 +106,8 @@ export function LoginPage(): HTMLElement {
 
   // Callback global pour Google
   (window as any).handleCredentialResponse = (response: any) => {
+    // Force le bouton à se réafficher si besoin
+    gIdSignin.style.display = 'block';
     console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
@@ -118,18 +120,67 @@ export function LoginPage(): HTMLElement {
         console.log('[Login] Backend responded to /api/auth/google', res);
         return res.json();
       })
-      .then(data => {
+      .then(async data => {
         console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
-        // Stocke le token maison dans le localStorage
-        if (data.token) {
-          localStorage.setItem('token', data.token);
+        if (data && data.token && data.name && data.picture) {
+          // On a bien reçu les infos, on lance la 2FA
+          // On suppose que l'email est dans le JWT (décodage simple)
+          let email = undefined;
+          try {
+            const payload = JSON.parse(atob(data.token.split('.')[1]));
+            email = payload.email;
+          } catch (e) {}
+          if (!email) {
+            statusMessage.innerText = 'Erreur: email introuvable dans le token.';
+            return;
+          }
+          // Envoie le code 2FA
+          statusMessage.innerText = 'Envoi du code de vérification...';
+          await fetch('/api/auth/2fa/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          // Supprime le formulaire précédent s'il existe
+          const oldForm = container.querySelector('form');
+          if (oldForm) oldForm.remove();
+          // Affiche le formulaire de saisie du code
+          const codeForm = document.createElement('form');
+          codeForm.className = 'flex flex-col items-center mt-4';
+          const codeInput = document.createElement('input');
+          codeInput.type = 'text';
+          codeInput.placeholder = 'Code reçu par email';
+          codeInput.className = 'mb-2 px-4 py-2 rounded text-black';
+          const codeBtn = document.createElement('button');
+          codeBtn.type = 'submit';
+          codeBtn.innerText = 'Valider le code';
+          codeBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded';
+          codeForm.appendChild(codeInput);
+          codeForm.appendChild(codeBtn);
+          container.appendChild(codeForm);
+          statusMessage.innerText = 'Un code a été envoyé à votre email.';
+          codeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            statusMessage.innerText = 'Vérification du code...';
+            const code = codeInput.value.trim();
+            if (!code) return;
+            const res = await fetch('/api/auth/2fa/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, code })
+            });
+            const verify = await res.json();
+            if (verify.ok) {
+              localStorage.setItem('token', data.token);
+              gIdSignin.style.display = 'none';
+              window.history.pushState(null, '', '/');
+              if (typeof window.renderPage === 'function') window.renderPage();
+            } else {
+              statusMessage.innerText = verify.message || 'Code invalide.';
+            }
+          };
         }
-        gIdSignin.style.display = 'none';
-        // Redirige vers la page d'accueil après connexion
-        window.history.pushState(null, '', '/');
-        // Ajout : forcer la mise à jour de la navbar après redirection
-        if (typeof window.renderPage === 'function') window.renderPage();
       })
       .catch(error => {
         statusMessage.innerText = 'Authentication failed.';

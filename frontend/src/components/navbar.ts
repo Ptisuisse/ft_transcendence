@@ -35,6 +35,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   signOutButton.onclick = () => {
     localStorage.removeItem('token');
     if (typeof window.renderPage === 'function') window.renderPage();
+    window.location.reload(); // Force le rechargement pour réinitialiser Google Sign-In
   };
   rightItemsContainer.appendChild(signOutButton);
 

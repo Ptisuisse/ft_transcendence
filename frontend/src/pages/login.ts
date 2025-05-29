@@ -1,5 +1,4 @@
 import '../style.css';
-import { navigateTo } from '../routes';
 
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
@@ -43,36 +42,72 @@ export function LoginPage(): HTMLElement {
   statusMessage.className = 'text-white mt-4';
   statusMessage.innerText = 'Waiting for authentication...';
 
-  // Sign out button
-  const signOutButton = document.createElement('button');
-  signOutButton.id = 'sign-out-button';
-  signOutButton.className = 'mt-6 px-6 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition';
-  signOutButton.innerText = 'Sign Out';
-  signOutButton.style.display = 'none';
-  signOutButton.addEventListener('click', () => signOut());
-
   // Ajout des éléments au container
   container.appendChild(title);
   container.appendChild(gIdOnload);
   container.appendChild(gIdSignin);
   container.appendChild(statusMessage);
-  container.appendChild(signOutButton);
 
   // Ajout du container à la page
   element.appendChild(container);
 
   // Ajout du script Google Identity Services (une seule fois)
+  function renderGoogleButton() {
+    if ((window as any).google && (window as any).google.accounts && (window as any).google.accounts.id) {
+      (window as any).google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: (window as any).handleCredentialResponse,
+        ux_mode: 'popup',
+        auto_select: false,
+        context: 'signin',
+      });
+      (window as any).google.accounts.id.renderButton(
+        gIdSignin,
+        {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+        }
+      );
+      gIdSignin.style.display = localStorage.getItem('token') ? 'none' : 'block';
+    }
+  }
+
+  function waitForGoogleScriptAndRender() {
+    if ((window as any).google && (window as any).google.accounts && (window as any).google.accounts.id) {
+      renderGoogleButton();
+    } else {
+      setTimeout(waitForGoogleScriptAndRender, 50);
+    }
+  }
+
   if (!document.getElementById('google-gsi-script')) {
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
     script.id = 'google-gsi-script';
+    script.onload = () => {
+      renderGoogleButton();
+    };
     document.head.appendChild(script);
+    waitForGoogleScriptAndRender();
+  } else {
+    waitForGoogleScriptAndRender();
   }
+
+  // Affiche toujours le bouton Google si pas connecté (même après navigation)
+  setTimeout(() => {
+    const token = localStorage.getItem('token');
+    gIdSignin.style.display = token ? 'none' : 'block';
+  }, 0);
 
   // Callback global pour Google
   (window as any).handleCredentialResponse = (response: any) => {
+    // Force le bouton à se réafficher si besoin
+    gIdSignin.style.display = 'block';
     console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
@@ -81,94 +116,85 @@ export function LoginPage(): HTMLElement {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jwt })
     })
-    .then(res => {
-      console.log('[Login] Backend responded to /api/auth/google', res);
-      if (!res.ok) {
-        return res.json().then(errData => {
-          throw new Error(errData.message || 'Authentication failed');
-        });
-      }
-      return res.json();
-    })
-    .then(data => {
-      console.log('[Login] Data received from backend:', data);
-      // Stocker l'état de connexion
-      localStorage.setItem('userName', data.name);
-      if (data.picture) {
-        localStorage.setItem('userPicture', data.picture);
-      }
-
-      statusMessage.innerHTML = '';
-      if (data.picture) {
-        const profileImg = document.createElement('img');
-          profileImg.src = data.picture;
-          profileImg.alt = "Profile picture";
-          profileImg.id = "profile-picture";
-          profileImg.className = 'w-32 h-32 rounded-full mx-auto block mb-8 -mt-4 shadow-lg';
-          statusMessage.appendChild(profileImg);
-          console.log('[Login] Profile image appended');
-        } else {
-          console.log('[Login] No profile image in data');
+      .then(res => {
+        console.log('[Login] Backend responded to /api/auth/google', res);
+        return res.json();
+      })
+      .then(async data => {
+        console.log('[Login] Data received from backend:', data);
+        statusMessage.innerHTML = '';
+        if (data && data.token && data.name && data.picture) {
+          // On a bien reçu les infos, on lance la 2FA
+          // On suppose que l'email est dans le JWT (décodage simple)
+          let email = undefined;
+          try {
+            const payload = JSON.parse(atob(data.token.split('.')[1]));
+            email = payload.email;
+          } catch (e) {}
+          if (!email) {
+            statusMessage.innerText = 'Erreur: email introuvable dans le token.';
+            return;
+          }
+          // Envoie le code 2FA
+          statusMessage.innerText = 'Envoi du code de vérification...';
+          await fetch('/api/auth/2fa/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          // Supprime le formulaire précédent s'il existe
+          const oldForm = container.querySelector('form');
+          if (oldForm) oldForm.remove();
+          // Affiche le formulaire de saisie du code
+          const codeForm = document.createElement('form');
+          codeForm.className = 'flex flex-col items-center mt-4';
+          const codeInput = document.createElement('input');
+          codeInput.type = 'text';
+          codeInput.placeholder = 'Code reçu par email';
+          codeInput.className = 'mb-2 px-4 py-2 rounded text-black';
+          const codeBtn = document.createElement('button');
+          codeBtn.type = 'submit';
+          codeBtn.innerText = 'Valider le code';
+          codeBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded';
+          codeForm.appendChild(codeInput);
+          codeForm.appendChild(codeBtn);
+          container.appendChild(codeForm);
+          statusMessage.innerText = 'Un code a été envoyé à votre email.';
+          codeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            statusMessage.innerText = 'Vérification du code...';
+            const code = codeInput.value.trim();
+            if (!code) return;
+            const res = await fetch('/api/auth/2fa/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, code })
+            });
+            const verify = await res.json();
+            if (verify.ok) {
+              localStorage.setItem('token', data.token);
+              gIdSignin.style.display = 'none';
+              window.history.pushState(null, '', '/');
+              if (typeof window.renderPage === 'function') window.renderPage();
+            } else {
+              statusMessage.innerText = verify.message || 'Code invalide.';
+            }
+          };
         }
-        const textNode = document.createElement('span');
-        textNode.textContent = ` Signed in as: ${data.name}`;
-        textNode.style.marginLeft = '10px';
-        statusMessage.appendChild(textNode);
-
-        signOutButton.style.display = 'block';
-        gIdSignin.style.display = 'none';
-        navigateTo('/');
       })
       .catch(error => {
         statusMessage.innerText = 'Authentication failed.';
-        signOutButton.style.display = 'none';
         gIdSignin.style.display = 'block';
         console.error('[Login] Erreur lors de lenvoi au backend:', error);
       });
   };
 
-  // Vérifie l'état de connexion au chargement de la page
-  function updateLoginUI() {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Utilisateur déjà connecté
-      statusMessage.innerHTML = '<span>Déjà connecté</span>';
-      signOutButton.style.display = 'block';
-      gIdSignin.style.display = 'none';
-    } else {
-      // Pas connecté
-      statusMessage.innerText = 'Waiting for authentication...';
-      signOutButton.style.display = 'none';
-      gIdSignin.style.display = 'block';
-    }
-  }
-  updateLoginUI();
-
   return element;
 }
 
-function signOut() {
-  localStorage.removeItem('userName');
-  localStorage.removeItem('userPicture');
-  localStorage.removeItem('token'); // Supprime le token à la déconnexion
-
-  const statusMessage = document.getElementById('status-message');
-  if (statusMessage) {
-    statusMessage.innerHTML = "Signed out";
+// Ajout pour TypeScript : déclare la fonction globale renderPage sur window
+declare global {
+  interface Window {
+    renderPage: () => void;
   }
-  const signOutButton = document.getElementById('sign-out-button');
-  if (signOutButton) {
-    signOutButton.style.display = 'none';
-  }
-  const signInButton = document.querySelector('.g_id_signin') as HTMLElement | null;
-  if (signInButton) {
-    signInButton.style.display = 'block';
-  }
-  // Supprimer la photo de profil si présente
-  const profileImg = document.getElementById('profile-picture');
-  if (profileImg && profileImg.parentNode) {
-    profileImg.parentNode.removeChild(profileImg);
-  }
-  console.log("User signed out");
-  navigateTo('/login');
 }

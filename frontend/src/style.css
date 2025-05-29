@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@property --animated-angle {
+	syntax: '<angle>';
+	initial-value: 0deg;
+	inherits: false;
+}
+
+@keyframes animateGradient {
+	to {
+		--animated-angle: 360deg;
+	}
+}
+
+.card::after, .card::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image: conic-gradient(
+		from calc(var(--gradient-offset, 0deg) + var(--animated-angle)),
+		#a855f7,
+		#ec4899,
+		#22d3ee,
+		#a855f7
+	);
+	z-index: -1;
+	animation: animateGradient var(--spin-duration, 3s) linear infinite;
+	clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.card::before {
+	filter: blur(1.5rem);
+	opacity: 0.5;
+}
+
+
+:root {
+	color-scheme: light dark;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-family: 'Orbitron', sans-serif; /* Ajout de la police Orbitron */
+}
+
+#app {
+	padding-top: 4rem;
+	min-height: 100vh;
+	box-sizing: border-box;
+}
+
+
+body {
+	min-height: 100vh;
+	min-width: 320px;
+	padding: 0 1rem;
+	background-image: linear-gradient(rgba(10, 10, 10, 0.3), rgba(0, 0, 0, 0.8)), 
+										url('../public/background.jpg'); 
+	background-size: cover; 
+	background-position: center center; 
+	background-repeat: no-repeat; 
+	background-attachment: fixed;
+}
+
+body::before {
+	content: '';
+	position: fixed; 
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: url('../public/noise.gif'); 
+	background-repeat: repeat; 
+	background-size: auto; 
+	background-attachment: fixed; 
+	opacity: 0.03; 
+	pointer-events: none;
+}
+
+@layer utilities {
+	.Parent {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+		text-align: center;
+		gap: 0.5rem;
+	}
+
+	@screen sm {
+		.Parent {
+			gap: 1rem;
+		}
+	}
+	@screen md {
+		.Parent {
+			gap: 2rem;
+		}
+	}
+	@screen lg {
+		.Parent {
+			gap: 3rem;
+		}
+	}
+}
+
+/* @layer utilities {
+	.image-zoom {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		transition: transform 0.3s ease;
+	}
+} */
+
+@layer utilities {
+	.navbar-links {
+		@apply transition-all ease-in-out duration-300;
+		@apply font-bold hidden md:flex flex-row items-center space-x-10 mx-auto;
+	}
+
+	.navbar-links.open {
+		@apply block flex-col space-y-4;
+		@apply absolute top-full left-1/2 transform -translate-x-1/2 w-full bg-[#242424]/75 text-white backdrop-blur-sm; /* Modifié pour la transparence et le flou */
+	}
+
+	.hamburger-btn {
+		@apply md:hidden absolute left-1/2 transform -translate-x-1/2 text-2xl z-10; /* Assurez-vous qu'il est au-dessus des autres éléments */
+	}
+}
+
+h2 {
+	font-size: 2.5em;
+	line-height: 1.1;
+	color: #ffffff;
+	margin-bottom: 50px;
+}

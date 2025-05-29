@@ -37,6 +37,16 @@ export function PongPage(): HTMLElement {
   // Add border to main element
   element.appendChild(border);
   
+  // Vérifie la présence du token pour accès à la page Pong
+  const token = localStorage.getItem('token');
+  if (!token) {
+    const notConnected = document.createElement('div');
+    notConnected.className = 'text-white text-2xl mt-10';
+    notConnected.innerText = 'Vous devez être connecté pour accéder à Pong.';
+    element.appendChild(notConnected);
+    return element;
+  }
+  
   // Set up paddle movement after the component is mounted
   setTimeout(() => {
     setupPaddleMovement();
@@ -75,7 +85,7 @@ function setupPaddleMovement() {
   document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
     if (key in keys) {
-      keys[key] = true;
+      keys[key as keyof typeof keys] = true;
       event.preventDefault();
     }
   });
@@ -84,7 +94,7 @@ function setupPaddleMovement() {
   document.addEventListener('keyup', (event) => {
     const key = event.key.toLowerCase();
     if (key in keys) {
-      keys[key] = false;
+      keys[key as keyof typeof keys] = false;
     }
   });
   

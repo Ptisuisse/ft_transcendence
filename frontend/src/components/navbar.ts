@@ -1,7 +1,7 @@
 export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   const nav = document.createElement('nav');
-  //nav.className = 'border border-purple-300 p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50';
   nav.className = 'p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50 bg-[#242424]/75 backdrop-blur-sm';
+
   // Conteneur gauche et droit
   const leftItemsContainer = document.createElement('div');
   leftItemsContainer.className = 'absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-4'; 
@@ -17,41 +17,34 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   textLogoLink.className = `
     transition-all duration-300
     hover:scale-90 transform font-bold text-sm md:text-base lg:text-xl`;
+  // Désactive le lien si pas connecté
+  const token = localStorage.getItem('token');
+  if (!token) {
+    textLogoLink.classList.add('pointer-events-none', 'opacity-50');
+    textLogoLink.setAttribute('aria-disabled', 'true');
+    (textLogoLink as HTMLElement).style.cursor = 'not-allowed';
+  }
   leftItemsContainer.appendChild(textLogoLink);
 
-  // image login droit
-  const loginImageLink = document.createElement('a');
-  loginImageLink.href = '/login';
-  loginImageLink.innerText= 'Login';
-  loginImageLink.setAttribute('data-link', '');
-  
-  // const loginImg = document.createElement('img');
-  // const defaultLoginSrc = '/login.png';
-  // const hoverLoginSrc = '/hover_login.png';
+  // BOUTON SIGN OUT (remplace login)
+  const signOutButton = document.createElement('button');
+  signOutButton.id = 'navbar-signout';
+  signOutButton.innerText = 'Sign Out';
+  signOutButton.className = 'px-4 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition font-bold';
+  signOutButton.style.display = 'none';
+  signOutButton.onclick = () => {
+    localStorage.removeItem('token');
+    if (typeof window.renderPage === 'function') window.renderPage();
+    window.location.reload(); // Force le rechargement pour réinitialiser Google Sign-In
+  };
+  rightItemsContainer.appendChild(signOutButton);
 
-  // loginImg.src = defaultLoginSrc; 
-  // loginImg.alt = 'Login';
-  // loginImg.className = 'h-7 w-auto';
-
-  // loginImageLink.addEventListener('mouseenter', () => {
-  //   loginImg.src = hoverLoginSrc;
-  //   loginImg.className = `h-8 w-auto`;
-  // });
-
-  // loginImageLink.addEventListener('mouseleave', () => {
-  //   loginImg.src = defaultLoginSrc;
-  //   loginImg.className = 'h-7 w-auto';
-  // });
-  
-  //loginImageLink.appendChild(loginImg);
-  rightItemsContainer.appendChild(loginImageLink);
   nav.appendChild(rightItemsContainer);
   nav.appendChild(leftItemsContainer);
 
   // Conteneur pour les liens de navigation
   const navLinks = document.createElement('div');
-  navLinks.className = 'navbar-links '; // utilise le layer defini dans le style.css facon tailwind
-  
+  navLinks.className = 'navbar-links ';
   for (const path in routes) {
     const link = document.createElement('a');
     link.href = path;
@@ -64,33 +57,31 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
     `;
     navLinks.appendChild(link);
   }
-
   nav.appendChild(navLinks);
- 
-	// A retenir toggle ajoute une classe remove la retire
-  // Ajout hamburger
-  const hamburgerBtn = document.createElement('button');
-  hamburgerBtn.className = 'hamburger-btn'; //  utilise le layer defini dans le style.css facon tailwind
-  hamburgerBtn.innerHTML = '☰'; // Icone hamburger
-  
-  // affichage du menu au clic
-  hamburgerBtn.addEventListener('click', () => {
-    navLinks.classList.toggle('open'); // classe open definie dans le style.css
-  });
 
+  // Hamburger
+  const hamburgerBtn = document.createElement('button');
+  hamburgerBtn.className = 'hamburger-btn';
+  hamburgerBtn.innerHTML = '☰';
+  hamburgerBtn.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
   nav.appendChild(hamburgerBtn);
 
-  // Eventlistener ecoute pour verifier la taille de la window
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 768) {
       navLinks.classList.remove('open');
     }
   });
-
-  // comportement au chargement de la page
   if (window.innerWidth >= 768) { 
     navLinks.classList.remove('open');
   }
+
+  // Affichage dynamique du bouton sign-out
+  setTimeout(() => {
+    const token = localStorage.getItem('token');
+    signOutButton.style.display = token ? 'block' : 'none';
+  }, 0);
 
   return nav;
 }

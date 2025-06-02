@@ -366,6 +366,11 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   const leftPaddleX = 25;
   const rightPaddleX = containerWidth - 25;
   
+  // Add these missing AI variables
+  let lastAiUpdateTime = Date.now();
+  let aiUpdateInterval = 1000; // Update AI logic every 200ms
+  let aiTargetY = containerHeight / 2; // Initial target is center of the screen
+  
   // Optimization: Create DOM operation buffer
   let pendingLeftPaddleY = leftPaddleY;
   let pendingRightPaddleY = rightPaddleY;

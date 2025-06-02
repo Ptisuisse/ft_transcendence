@@ -310,11 +310,11 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   // Ball properties
   let ballX = 390;
   let ballY = 290;
-  let initialSpeed = 2;
+  let initialSpeed = 4;
   let ballSpeedX = initialSpeed;
   let ballSpeedY = initialSpeed * 0.3;
   const ballSize = 20;
-  const speedIncrement = 0.25;
+  const speedIncrement = 1;
   let maxSpeed = 12;
   
   // Track pressed keys with state
@@ -373,52 +373,77 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   let pendingBallY = ballY;
   
   // Modify the update physics function to include AI logic
-  function updatePhysics() {
+  function updatePhysics()
+  {
     // Move left paddle with keyboard input
     if (keys.w) leftPaddleY = Math.max(paddleTop, leftPaddleY - paddleSpeed);
     if (keys.s) leftPaddleY = Math.min(paddleBottom, leftPaddleY + paddleSpeed);
     
     // Move right paddle based on AI status
-    if (aiEnabled) {
-      // AI LOGIC: Track the ball with some delay and error margin
-      const ballCenter = ballY + ballSize / 2;
-      const paddleCenter = rightPaddleY + paddleHeight / 2;
+    if (aiEnabled)
+    {
+      const currentTime = Date.now();
       
-      // Create a "dead zone" - AI won't move if ball is roughly centered on paddle
-      const deadZone = paddleHeight * 0.3; // 30% of paddle height as dead zone
-      
-      // Only move if ball is outside the dead zone relative to paddle center
-      if (Math.abs(ballCenter - paddleCenter) > deadZone) {
-        // Only recalculate target position when ball is moving toward AI
-        if (ballSpeedX > 0) {
-          // If need to move up
-          if (ballCenter < paddleCenter) {
-            // Move up at a steady pace rather than interpolation
-            rightPaddleY -= paddleSpeed * 0.8;
-          }
-          // If need to move down
-          else {
-            // Move down at a steady pace
-            rightPaddleY += paddleSpeed * 0.8;
+      // L'IA ne peut voir le jeu qu'une fois par seconde
+      if (currentTime - lastAiUpdateTime > aiUpdateInterval)
+      {
+        lastAiUpdateTime = currentTime;
+        
+        // Calcul de la trajectoire future de la balle avec anticipation des rebonds
+        let futureBallX = ballX;
+        let futureBallY = ballY;
+        let futureSpeedX = ballSpeedX;
+        let futureSpeedY = ballSpeedY;
+        
+        // Simuler plusieurs étapes pour anticiper où la balle sera
+        for (let step = 0; step < 60; step++)
+        {
+          futureBallX += futureSpeedX;
+          futureBallY += futureSpeedY;
+          
+          // Anticiper les rebonds sur les murs
+          if (futureBallY < 0 || futureBallY > ballBottom)
+          {
+            futureSpeedY = -futureSpeedY;
           }
           
-          // Clamp to valid position
-          rightPaddleY = Math.max(paddleTop, Math.min(paddleBottom, rightPaddleY));
+          // Si la balle atteint le côté droit, c'est notre cible
+          if (futureBallX >= rightPaddleX - 50)
+            break;
         }
+        
+        // Définir la position cible
+        aiTargetY = futureBallY - paddleHeight / 2;
       }
       
-      // If ball is moving away, occasionally adjust position toward center when far from it
-      if (ballSpeedX < 0 && Math.abs(rightPaddleY + paddleHeight/2 - containerHeight/2) > paddleHeight) {
-        // Slowly return to center when ball is moving away
-        const centerY = containerHeight/2 - paddleHeight/2;
-        rightPaddleY += (centerY - rightPaddleY) * 0.02;
+      // Simuler les pressions de touches basées sur la cible calculée
+      const paddleCenter = rightPaddleY + paddleHeight / 2;
+      
+      // Déterminer quelles touches "presser" (comme un humain)
+      if (paddleCenter > aiTargetY + 10) 
+      {
+        keys.arrowup = true;
+        keys.arrowdown = false;
+      } 
+      else if (paddleCenter < aiTargetY - 10) 
+      {
+        keys.arrowdown = true;
+        keys.arrowup = false;
+      } 
+      else
+      {
+        keys.arrowup = false;
+        keys.arrowdown = false;
       }
-    } else {
-      // Manual control for right paddle
+      
+      if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
+      if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
+    } 
+    else 
+    {
       if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
       if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
     }
-    
     // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
@@ -510,9 +535,11 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     pendingBallY = ballY;
   }
   
-  function applyChanges() {
+  function applyChanges()
+  {
     // Apply all DOM updates in one batch to prevent layout thrashing
-    if (leftPaddle && rightPaddle && ball) {
+    if (leftPaddle && rightPaddle && ball)
+    {
       // Optimize for GPU acceleration and reduce jank
       leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
       rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
@@ -521,7 +548,8 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   }
   
   // Optimized game loop with frame limiting
-  function gameLoop(timestamp: number) {
+  function gameLoop(timestamp: number)
+  {
     if (!lastTime) lastTime = timestamp;
     
     const frameTime = Math.min(timestamp - lastTime, 50); // Cap at 50ms to prevent spiral of death

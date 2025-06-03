@@ -83,5 +83,10 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
     signOutButton.style.display = token ? 'block' : 'none';
   }, 0);
 
+  // Ajout d'un cookie de test avec SameSite pour éviter le warning navigateur
+  try {
+    document.cookie = "ft_test_cookie=1; SameSite=Lax; path=/";
+  } catch (e) {}
+
   return nav;
 }

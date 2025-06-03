@@ -366,10 +366,8 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   const leftPaddleX = 25;
   const rightPaddleX = containerWidth - 25;
   
-  // Add these missing AI variables
-  let lastAiUpdateTime = Date.now();
-  let aiUpdateInterval = 1000; // Update AI logic every 200ms
-  let aiTargetY = containerHeight / 2; // Initial target is center of the screen
+  let aiTargetY = rightPaddleY;
+  let aiLastUpdate = performance.now();
   
   // Optimization: Create DOM operation buffer
   let pendingLeftPaddleY = leftPaddleY;
@@ -387,60 +385,49 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     // Move right paddle based on AI status
     if (aiEnabled)
     {
-      const currentTime = Date.now();
-      
-      // L'IA ne peut voir le jeu qu'une fois par seconde
-      if (currentTime - lastAiUpdateTime > aiUpdateInterval)
-      {
-        lastAiUpdateTime = currentTime;
-        
-        // Calcul de la trajectoire future de la balle avec anticipation des rebonds
-        let futureBallX = ballX;
-        let futureBallY = ballY;
-        let futureSpeedX = ballSpeedX;
-        let futureSpeedY = ballSpeedY;
-        
-        // Simuler plusieurs étapes pour anticiper où la balle sera
-        for (let step = 0; step < 60; step++)
-        {
-          futureBallX += futureSpeedX;
-          futureBallY += futureSpeedY;
-          
-          // Anticiper les rebonds sur les murs
-          if (futureBallY < 0 || futureBallY > ballBottom)
-          {
-            futureSpeedY = -futureSpeedY;
+      // L'IA "regarde" la balle toutes les 1s (temps réel)
+      const now = performance.now();
+      if (now - aiLastUpdate > 1000) {
+        aiLastUpdate = now;
+
+        // Prédire la position Y de la balle à l'arrivée sur la raquette droite
+        if (ballSpeedX > 0) {
+          let simX = ballX;
+          let simY = ballY;
+          let simSpeedX = ballSpeedX;
+          let simSpeedY = ballSpeedY;
+
+          while (simX + ballSize < rightPaddleX) {
+            simX += simSpeedX;
+            simY += simSpeedY;
+            if (simY < 0) {
+              simY = -simY;
+              simSpeedY = -simSpeedY;
+            } else if (simY > ballBottom) {
+              simY = 2 * ballBottom - simY;
+              simSpeedY = -simSpeedY;
+            }
           }
-          
-          // Si la balle atteint le côté droit, c'est notre cible
-          if (futureBallX >= rightPaddleX - 50)
-            break;
+          aiTargetY = simY + ballSize / 2 - paddleHeight / 2;
+        } else {
+          aiTargetY = containerHeight / 2 - paddleHeight / 2;
         }
-        
-        // Définir la position cible
-        aiTargetY = futureBallY - paddleHeight / 2;
       }
-      
-      // Simuler les pressions de touches basées sur la cible calculée
-      const paddleCenter = rightPaddleY + paddleHeight / 2;
-      
-      // Déterminer quelles touches "presser" (comme un humain)
-      if (paddleCenter > aiTargetY + 10) 
-      {
-        keys.arrowup = true;
-        keys.arrowdown = false;
-      } 
-      else if (paddleCenter < aiTargetY - 10) 
-      {
-        keys.arrowdown = true;
-        keys.arrowup = false;
-      } 
-      else
-      {
+      // Simule l'appui sur les touches pour déplacer la raquette
+      if (Math.abs(rightPaddleY - aiTargetY) > paddleSpeed) {
+        if (rightPaddleY < aiTargetY) {
+          keys.arrowdown = true;
+          keys.arrowup = false;
+        } else if (rightPaddleY > aiTargetY) {
+          keys.arrowup = true;
+          keys.arrowdown = false;
+        }
+      } else {
         keys.arrowup = false;
         keys.arrowdown = false;
       }
-      
+
+      // Applique le déplacement comme un joueur humain
       if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
       if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
     } 
@@ -449,6 +436,9 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
       if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
       if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
     }
+    // Sauvegarde la position précédente de la balle
+    const prevBallX = ballX;
+
     // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
@@ -462,31 +452,34 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
       ballSpeedY = -ballSpeedY;
     }
     
-    // Optimized paddle collision detection
-    // Left paddle collision
+    // --- Correction collision continue ---
+
+    // Left paddle collision (continuous)
     if (
       ballSpeedX < 0 && // Only check collision if ball is moving left
-      ballX < leftPaddleX && 
-      ballX > leftPaddleX - 10 &&
-      ballY + ballSize > leftPaddleY && 
+      prevBallX >= leftPaddleX + 15 && // 15 = largeur paddle
+      ballX < leftPaddleX + 15 &&
+      // Vérifie si la balle croise la zone verticale de la raquette
+      ballY + ballSize > leftPaddleY &&
       ballY < leftPaddleY + paddleHeight
     ) {
       const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
       const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
       const speedRatio = newSpeed / currentSpeed;
-      
+
       ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
       const hitPosition = (ballY + ballSize/2 - (leftPaddleY + paddleHeight/2)) / (paddleHeight/2);
       ballSpeedY = newSpeed * hitPosition * 0.8;
-      
-      ballX = leftPaddleX;
+
+      // Replace la balle juste à côté de la raquette
+      ballX = leftPaddleX + 15;
     }
-    
-    // Right paddle collision
+
+    // Right paddle collision (continuous)
     if (
-      ballSpeedX > 0 && // <--- Ajouté : collision seulement si la balle va vers la droite
+      ballSpeedX > 0 && // Only check collision if ball is moving right
+      prevBallX + ballSize <= rightPaddleX && // Avant la raquette
       ballX + ballSize > rightPaddleX &&
-      ballX < rightPaddleX + 15 &&
       ballY + ballSize > rightPaddleY &&
       ballY < rightPaddleY + paddleHeight
     ) {
@@ -498,7 +491,7 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
       const hitPosition = (ballY + ballSize/2 - (rightPaddleY + paddleHeight/2)) / (paddleHeight/2);
       ballSpeedY = newSpeed * hitPosition * 0.8;
 
-      // Place la balle juste à l'extérieur de la raquette
+      // Replace la balle juste à côté de la raquette
       ballX = rightPaddleX - ballSize;
     }
     

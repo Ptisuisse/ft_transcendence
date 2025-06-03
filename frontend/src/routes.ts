@@ -1,7 +1,7 @@
 import './style.css'
 import { createNavbar } from './components/navbar.ts'
 import { HomePage } from './pages/main.ts';
-import { PongPage } from './pages/pong.ts';
+import { PongMenuPage, PongGamePage } from './pages/pong.ts';
 import { LoginPage } from './pages/login.ts';
 import { TeamPage } from './pages/team.ts';
 
@@ -9,17 +9,19 @@ type PageRenderFunction = () => string | HTMLElement;
 
 const routes: { [key: string]: PageRenderFunction | string } = {
     "/": HomePage,
-    "/pong": PongPage,
+    "/pong": PongMenuPage,        // Page d'accueil de Pong (menu)
+    "/pong/game": PongGamePage,   // Page du jeu
     "/login": LoginPage,
     "/team" : TeamPage,
-  };
+};
 
 export const navigateTo = (url: string) => {
   history.pushState(null, "", url);
   renderPage();
 };
 
-const protectedRoutes = ['/', '/pong', '/team'];
+// Routes non protégées
+const protectedRoutes = ['/', '/team']; // Le Pong reste accessible sans login
 
 const renderPage = () => {
   let path = window.location.pathname;
@@ -93,7 +95,7 @@ document.addEventListener("click", (event) => {
   const linkElement = target.closest("[data-link]") as HTMLAnchorElement | null;
   if (linkElement) {
     event.preventDefault();
-    navigateTo(linkElement.getAttribute("href")!);
+    navigateTo(linkElement.getAttribute("href")!); // Il manquait les parenthèses ici
   }
 });
 

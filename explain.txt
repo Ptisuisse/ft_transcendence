@@ -1,0 +1,8 @@
+Dans ce fichier, toutes les requêtes SQL utilisant des entrées utilisateur 
+(par exemple : /users, /users/:email) utilisent la syntaxe :
+
+db.get('SELECT * FROM users WHERE email = ?', [email], ...)
+db.run('INSERT INTO users(username, email) VALUES (?, ?)', [username, email], ...)
+
+Ceci est une requête paramétrée (prepared statement), 
+ce qui protège contre les injections SQL classiques.

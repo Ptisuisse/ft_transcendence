@@ -1,4 +1,6 @@
 import '../style.css';
+import { translations } from '../i18n.ts';
+import { getCurrentLang } from '../components/navbar.ts';
 
 interface CardData {
     imageUrl: string;
@@ -10,11 +12,13 @@ interface CardData {
 interface ImageWrapperElement extends HTMLElement {
     customHideEffects?: () => void;
 }
+
 function createImageCard(data: CardData): HTMLElement {
     const cardContainer = document.createElement('div');
     cardContainer.className = 'my-10 text-white flex flex-col items-center md:mb-10';
 
     const imageWrapper = document.createElement('div') as ImageWrapperElement;
+    //imageWrapper.className = 'js-image-card-wrapper relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
     imageWrapper.className = 'js-image-card-wrapper relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
     imageWrapper.dataset.toggled = 'false';
     imageWrapper.setAttribute('tabindex', '0');
@@ -29,18 +33,17 @@ function createImageCard(data: CardData): HTMLElement {
 
     const title = document.createElement('h1');
     title.innerText = data.titleText;
-    title.className = 'absolute top-4 left-1/2 -translate-x-1/2 text-2xl font-bold text-cyan-300 opacity-0 transition-all duration-300 ease-in-out z-10';
+    title.className = 'absolute top-8 left-1/2 -translate-x-1/2 max-w-[90%] min-h-[1.5rem] text-2xl font-bold text-cyan-300 opacity-0 transition-all duration-300 ease-in-out z-10 text-center break-words whitespace-normal line-clamp-2';
 
     const description = document.createElement('p');
     description.innerText = data.descriptionText;
-    description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 text-m font-bold text-pink-400 opacity-0 transition-all duration-300 ease-in-out z-10 px-4 text-center';
-    
+    description.className = 'absolute bottom-8 left-1/2 -translate-x-1/2 w-11/12 text-m font-bold text-pink-400 opacity-0 transition-all duration-300 ease-in-out z-10 px-4 text-center line-clamp-2 overflow-hidden';
+
     const playLink = document.createElement('a');
     playLink.href = data.linkHref;
     playLink.setAttribute('data-link', '');
-    playLink.innerText = 'PLAY';
-    playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold px-8 py-2 text-purple-400 hover:text-pink-900 font-semibold outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-cyan-500 hover:outline-0 cursor-pointer opacity-0 transition-all duration-100 ease-in-out z-10';
-    playLink.style.pointerEvents = 'none';
+    playLink.innerText = translations[getCurrentLang()].play;
+   playLink.className = 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 font-bold px-8 py-2 text-purple-400 hover:text-pink-900 font-semibold outline-3 outline-offset-2 outline-double outline-purple-300 rounded hover:bg-cyan-500 hover:outline-0 cursor-pointer opacity-0 transition-all duration-100 ease-in-out z-10';
 
     imageWrapper.appendChild(image);
     imageWrapper.appendChild(overlay);
@@ -208,27 +211,27 @@ export function HomePage(): HTMLElement {
         md:text-6xl
         inline-block 
     `;
-    pageTitle.textContent = 'Welcome';
+    pageTitle.textContent = translations[getCurrentLang()].welcome;
 
 	titleContainer.appendChild(pageTitle);
 
 	const cardDataList: CardData[] = [
 		{
 			imageUrl: '/pong.jpg',
-			titleText: 'Classique Pong',
-			descriptionText: 'A simple pong game',
+			titleText: translations[getCurrentLang()].TitlePongGame,
+			descriptionText: translations[getCurrentLang()].PongGame,
 			linkHref: '/pong'
 		},
 		{
 			imageUrl: '/pong.jpg',
-			titleText: 'Multiplayer Pong',
-			descriptionText: 'Multiplayer pong game',
+			titleText: translations[getCurrentLang()].TitleMultiPong,
+			descriptionText: translations[getCurrentLang()].MultiPong,
 			linkHref: '/pong'
 		},
 		{
 			imageUrl: '/pong.jpg',
-			titleText: 'Leaderboard Pong',
-			descriptionText: 'Pong game leaderboard',
+			titleText: translations[getCurrentLang()].TitleLeaderboard,
+			descriptionText: translations[getCurrentLang()].Leaderboard,
 			linkHref: '/pong'
 		}
 	];

@@ -1,3 +1,23 @@
+export function getCurrentLang(): 'fr' | 'en' | 'es' {
+  return (localStorage.getItem('lang') as 'fr' | 'en' | 'es') || 'en';
+}
+
+function setLanguage(lang: string) {
+  localStorage.setItem('lang', lang);
+  if (typeof window.renderPage === 'function') window.renderPage();
+}
+
+
+const langSelector = document.createElement('select');
+langSelector.innerHTML = `
+  <option value="fr">Français</option>
+  <option value="en">English</option>
+  <option value="es">Español</option>
+`;
+
+langSelector.value = getCurrentLang();
+langSelector.onchange = () => setLanguage(langSelector.value);
+
 export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   const nav = document.createElement('nav');
   nav.className = 'p-4 text-white flex justify-between items-center fixed top-0 left-0 right-0 w-full z-50 bg-[#242424]/75 backdrop-blur-sm';
@@ -38,7 +58,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
     window.location.reload(); // Force le rechargement pour réinitialiser Google Sign-In
   };
   rightItemsContainer.appendChild(signOutButton);
-
+  rightItemsContainer.appendChild(langSelector);
   nav.appendChild(rightItemsContainer);
   nav.appendChild(leftItemsContainer);
 

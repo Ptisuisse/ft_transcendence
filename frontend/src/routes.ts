@@ -9,8 +9,8 @@ type PageRenderFunction = () => string | HTMLElement;
 
 const routes: { [key: string]: PageRenderFunction | string } = {
     "/": HomePage,
-    "/pong": PongMenuPage,        // Page d'accueil de Pong (menu)
-    "/pong/game": PongGamePage,   // Page du jeu
+    "/pong": PongMenuPage,
+    "/pong/game": PongGamePage,
     "/login": LoginPage,
     "/team" : TeamPage,
 };
@@ -20,8 +20,8 @@ export const navigateTo = (url: string) => {
   renderPage();
 };
 
-// Routes non protégées
-const protectedRoutes = ['/', '/team']; // Le Pong reste accessible sans login
+//const protectedRoutes = ['/', '/team', '/pong', '/pong/game'];
+const protectedRoutes = [''];
 
 const renderPage = () => {
   let path = window.location.pathname;
@@ -48,7 +48,6 @@ const renderPage = () => {
     appElement.appendChild(contentToRender);
   }
 
-  // Cible uniquement les liens de la navbar
   const navbarLinks = document.querySelectorAll('nav .navbar-links a[data-link]');
   navbarLinks.forEach(link => {
     const href = link.getAttribute("href");
@@ -57,7 +56,6 @@ const renderPage = () => {
     } else {
       link.classList.remove("active");
     }
-    // Grise/désactive SEULEMENT si pas connecté
     if (!token && protectedRoutes.includes(href!)) {
       link.classList.add('pointer-events-none', 'opacity-50');
       link.setAttribute('aria-disabled', 'true');
@@ -69,7 +67,6 @@ const renderPage = () => {
     }
   });
 
-  // Désactive aussi le logo ft_transcendence si pas connecté
   const logoLink = document.querySelector('nav a[data-link][href="/"]');
   if (logoLink) {
     if (!token) {
@@ -83,7 +80,6 @@ const renderPage = () => {
     }
   }
 
-  // Affiche ou cache le bouton sign-out de la navbar dynamiquement
   const signOutBtn = document.getElementById('navbar-signout');
   if (signOutBtn) {
     signOutBtn.style.display = token ? 'block' : 'none';
@@ -95,7 +91,7 @@ document.addEventListener("click", (event) => {
   const linkElement = target.closest("[data-link]") as HTMLAnchorElement | null;
   if (linkElement) {
     event.preventDefault();
-    navigateTo(linkElement.getAttribute("href")!); // Il manquait les parenthèses ici
+    navigateTo(linkElement.getAttribute("href")!);
   }
 });
 
@@ -110,7 +106,6 @@ for (const key in routes) {
 const navbar = createNavbar(navRoutesForNavbar); 
 document.body.prepend(navbar);
 
-// Expose renderPage globally for login.ts
 (window as any).renderPage = renderPage;
 
 renderPage();

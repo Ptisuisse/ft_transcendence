@@ -1,5 +1,7 @@
 import '../style.css';
 import { navigateTo } from '../routes.ts';
+import { translations } from '../i18n.ts';
+import { getCurrentLang } from '../components/navbar.ts';
 
 // Stockage des paramètres entre les pages
 interface PongSettings {
@@ -21,7 +23,7 @@ export function PongMenuPage(): HTMLElement {
   // Menu title
   const menuTitle = document.createElement('h2');
   menuTitle.className = 'text-white text-2xl font-bold mb-6 text-center';
-  menuTitle.textContent = 'PONG Settings';
+  menuTitle.textContent = translations[getCurrentLang()].PongSettings;
   menuModal.appendChild(menuTitle);
 
   // Ball color selection
@@ -30,7 +32,7 @@ export function PongMenuPage(): HTMLElement {
   
   const colorLabel = document.createElement('p');
   colorLabel.className = 'text-white mb-2';
-  colorLabel.textContent = 'Select Ball Color:';
+  colorLabel.textContent = translations[getCurrentLang()].BallColor;
   colorSection.appendChild(colorLabel);
   
   const ballColorPicker = document.createElement('input');
@@ -46,7 +48,7 @@ export function PongMenuPage(): HTMLElement {
   
   const leftPaddleLabel = document.createElement('p');
   leftPaddleLabel.className = 'text-white mb-2';
-  leftPaddleLabel.textContent = 'Left Paddle Color:';
+  leftPaddleLabel.textContent = translations[getCurrentLang()].LeftPaddleColor; 
   leftPaddleSection.appendChild(leftPaddleLabel);
   
   const leftPaddleColorPicker = document.createElement('input');
@@ -62,7 +64,7 @@ export function PongMenuPage(): HTMLElement {
   
   const rightPaddleLabel = document.createElement('p');
   rightPaddleLabel.className = 'text-white mb-2';
-  rightPaddleLabel.textContent = 'Right Paddle Color:';
+  rightPaddleLabel.textContent = translations[getCurrentLang()].RightPaddleColor;
   rightPaddleSection.appendChild(rightPaddleLabel);
   
   const rightPaddleColorPicker = document.createElement('input');
@@ -78,7 +80,7 @@ export function PongMenuPage(): HTMLElement {
   
   const aiLabel = document.createElement('p');
   aiLabel.className = 'text-white mb-2';
-  aiLabel.textContent = 'Enable AI Opponent:';
+  aiLabel.textContent = translations[getCurrentLang()].EnableIA;
   aiSection.appendChild(aiLabel);
 
   // AI toggle
@@ -87,11 +89,11 @@ export function PongMenuPage(): HTMLElement {
 
   const humanLabel = document.createElement('span');
   humanLabel.className = 'text-white text-sm';
-  humanLabel.textContent = '2 Players';
+  humanLabel.textContent = translations[getCurrentLang()].TwoPlayers;
 
   const aiLabel2 = document.createElement('span');
   aiLabel2.className = 'text-white text-sm';
-  aiLabel2.textContent = 'vs AI';
+  aiLabel2.textContent = translations[getCurrentLang()].VersusIA;
 
   const toggleSwitch = document.createElement('label');
   toggleSwitch.className = 'relative inline-block w-12 h-6 mx-4';
@@ -134,7 +136,7 @@ export function PongMenuPage(): HTMLElement {
   // Start button
   const startButton = document.createElement('button');
   startButton.className = 'w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors font-bold';
-  startButton.textContent = 'Start Game';
+  startButton.textContent = translations[getCurrentLang()].StartGame;
   startButton.addEventListener('click', () => {
     // Sauvegarder les paramètres
     const settings: PongSettings = {
@@ -194,7 +196,7 @@ export function PongGamePage(): HTMLElement {
   // Bouton retour au menu
   const menuButton = document.createElement('button');
   menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors';
-  menuButton.textContent = 'Back to Menu';
+  menuButton.textContent = translations[getCurrentLang()].BackToMenu;
   menuButton.addEventListener('click', () => {
     // Nettoyage avant navigation
     if (typeof cleanup === 'function') {

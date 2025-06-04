@@ -18,7 +18,6 @@ function createImageCard(data: CardData): HTMLElement {
     cardContainer.className = 'my-10 text-white flex flex-col items-center md:mb-10';
 
     const imageWrapper = document.createElement('div') as ImageWrapperElement;
-    //imageWrapper.className = 'js-image-card-wrapper relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
     imageWrapper.className = 'js-image-card-wrapper relative lg:flex w-64 h-60 group overflow-hidden rounded-lg shadow-lg shadow-indigo-400/100 transition-all duration-300 ease-in-out';
     imageWrapper.dataset.toggled = 'false';
     imageWrapper.setAttribute('tabindex', '0');

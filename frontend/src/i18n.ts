@@ -1,5 +1,8 @@
 export const translations = {
   fr: {
+    // Navbar link
+    home: "Accueil",
+    //HomePage
     welcome: "Bienvenue",
     login: "Connexion",
     logout: "Déconnexion",
@@ -12,9 +15,27 @@ export const translations = {
     TitleLeaderboard: "Classement",
     Leaderboard: "Classement Pong",
     team: "Équipe",
+    //PongPage
+    TitlePongPage: "Page Pong",
+    PongSettings: "Paramètres Pong",
+    BallColor: "Couleur de la balle",
+    LeftPaddleColor: "Couleur du paddle gauche",
+    RightPaddleColor: "Couleur du paddle droit",
+    EnableIA: "Activer l'IA",
+    VersusIA: "Contre IA",
+    TwoPlayers: "2 joueurs",
+    StartGame : "Démarrer",
+    BackToMenu: "Retour au menu",
+    //TeamPage
+    TitleTeam : "Rencontre l'équipe",
+    Contributions: "Contributions",
+    //LoginPage
     // ... autres textes
   },
   en: {
+    // Navbar link
+    home: "Home",
+    //HomePage
     welcome: "Welcome",
     login: "Login",
     logout: "Logout",
@@ -27,9 +48,27 @@ export const translations = {
     TitleLeaderboard: "Leaderboard",
     Leaderboard: "Pong Leaderboard",
     team: "Team",
+    //PongPage
+    TitlePongPage: "Pong Page",
+    PongSettings: "Pong Settings",
+    BallColor: "Ball Color",
+    LeftPaddleColor: "Left Paddle Color",
+    RightPaddleColor: "Right Paddle Color",
+    EnableIA: "Enable AI Opponent",
+    VersusIA: "Vs AI",
+    TwoPlayers: "2 Players",
+    StartGame : "Start Game",
+    BackToMenu: "Back to Menu",
+    //TeamPage
+    TitleTeam : "Meet the Team",
+    Contributions: "Contributions",
+    //LoginPage
     // ... autres textes
   },
   es: {
+    // Navbar link
+    home: "Inicio",
+    //HomePage
     welcome: "Bienvenido",
     login: "Iniciar sesión",
     logout: "Cerrar sesión",
@@ -42,6 +81,21 @@ export const translations = {
     TitleLeaderboard: "Tabla de clasificación",
     Leaderboard: "Tabla de clasificación Pong",
     team: "Equipo",
+    //PongPage
+    TitlePongPage: "Página Pong",
+    PongSettings: "Configuración de Pong",
+    BallColor: "Color de la bola",
+    LeftPaddleColor: "Color del paddle izquierdo",
+    RightPaddleColor: "Color del paddle derecho",
+    EnableIA: "Habilitar oponente IA",
+    VersusIA: "Vs IA",
+    TwoPlayers: "2 Jugadores",
+    StartGame : "Iniciar juego",
+    BackToMenu: "Volver al menú",
+    //TeamPage
+    TitleTeam : "Conoce al equipo",
+    Contributions: "Contribuciones",
+    //LoginPage
     // ... autres textes
     }
 };

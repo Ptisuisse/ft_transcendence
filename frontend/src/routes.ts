@@ -1,5 +1,4 @@
 import './style.css'
-//import { createNavbar } from './components/navbar.ts'
 import { createNavbar, getCurrentLang } from './components/navbar.ts'
 import { HomePage } from './pages/main.ts';
 import { PongMenuPage, PongGamePage } from './pages/pong.ts';
@@ -80,25 +79,6 @@ const renderPage = () => {
       (link as HTMLElement).style.cursor = '';
     }
   });
-
-  // const navbarLinks = document.querySelectorAll('nav .navbar-links a[data-link]');
-  // navbarLinks.forEach(link => {
-  //   const href = link.getAttribute("href");
-  //   if (href === path) {
-  //     link.classList.add("active");
-  //   } else {
-  //     link.classList.remove("active");
-  //   }
-  //   if (!token && protectedRoutes.includes(href!)) {
-  //     link.classList.add('pointer-events-none', 'opacity-50');
-  //     link.setAttribute('aria-disabled', 'true');
-  //     (link as HTMLElement).style.cursor = 'not-allowed';
-  //   } else {
-  //     link.classList.remove('pointer-events-none', 'opacity-50');
-  //     link.removeAttribute('aria-disabled');
-  //     (link as HTMLElement).style.cursor = '';
-  //   }
-  // });
 
   const logoLink = document.querySelector('nav a[data-link][href="/"]');
   if (logoLink) {

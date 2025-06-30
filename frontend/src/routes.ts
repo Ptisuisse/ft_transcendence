@@ -1,16 +1,18 @@
 import './style.css'
-import { createNavbar } from './components/navbar.ts'
+//import { createNavbar } from './components/navbar.ts'
+import { createNavbar, getCurrentLang } from './components/navbar.ts'
 import { HomePage } from './pages/main.ts';
 import { PongMenuPage, PongGamePage } from './pages/pong.ts';
 import { LoginPage } from './pages/login.ts';
 import { TeamPage } from './pages/team.ts';
+import { translations } from './i18n.ts';
 
 type PageRenderFunction = () => string | HTMLElement;
 
 const routes: { [key: string]: PageRenderFunction | string } = {
     "/": HomePage,
-    "/pong": PongMenuPage,        // Page d'accueil de Pong (menu)
-    "/pong/game": PongGamePage,   // Page du jeu
+    "/pong": PongMenuPage,
+    "/pong/game": PongGamePage,
     "/login": LoginPage,
     "/team" : TeamPage,
 };
@@ -20,8 +22,7 @@ export const navigateTo = (url: string) => {
   renderPage();
 };
 
-// Routes non protégées
-const protectedRoutes = ['/', '/team']; // Le Pong reste accessible sans login
+const protectedRoutes = ['/', '/team', '/pong', '/pong/game'];
 
 const renderPage = () => {
   let path = window.location.pathname;
@@ -48,16 +49,27 @@ const renderPage = () => {
     appElement.appendChild(contentToRender);
   }
 
-  // Cible uniquement les liens de la navbar
   const navbarLinks = document.querySelectorAll('nav .navbar-links a[data-link]');
   navbarLinks.forEach(link => {
     const href = link.getAttribute("href");
+    
+    // Mise à jour du texte selon la langue actuelle
+    if (href === "/") {
+      link.textContent = translations[getCurrentLang()].home;
+    } else if (href === "/pong") {
+      link.textContent = "Pong"; // On garde "Pong" tel quel
+    } else if (href === "/team") {
+      link.textContent = translations[getCurrentLang()].team;
+    }
+    
+    // Attribution des classes d'état
     if (href === path) {
       link.classList.add("active");
     } else {
       link.classList.remove("active");
     }
-    // Grise/désactive SEULEMENT si pas connecté
+    
+    // Gestion des routes protégées
     if (!token && protectedRoutes.includes(href!)) {
       link.classList.add('pointer-events-none', 'opacity-50');
       link.setAttribute('aria-disabled', 'true');
@@ -69,7 +81,25 @@ const renderPage = () => {
     }
   });
 
-  // Désactive aussi le logo ft_transcendence si pas connecté
+  // const navbarLinks = document.querySelectorAll('nav .navbar-links a[data-link]');
+  // navbarLinks.forEach(link => {
+  //   const href = link.getAttribute("href");
+  //   if (href === path) {
+  //     link.classList.add("active");
+  //   } else {
+  //     link.classList.remove("active");
+  //   }
+  //   if (!token && protectedRoutes.includes(href!)) {
+  //     link.classList.add('pointer-events-none', 'opacity-50');
+  //     link.setAttribute('aria-disabled', 'true');
+  //     (link as HTMLElement).style.cursor = 'not-allowed';
+  //   } else {
+  //     link.classList.remove('pointer-events-none', 'opacity-50');
+  //     link.removeAttribute('aria-disabled');
+  //     (link as HTMLElement).style.cursor = '';
+  //   }
+  // });
+
   const logoLink = document.querySelector('nav a[data-link][href="/"]');
   if (logoLink) {
     if (!token) {
@@ -83,10 +113,10 @@ const renderPage = () => {
     }
   }
 
-  // Affiche ou cache le bouton sign-out de la navbar dynamiquement
-  const signOutBtn = document.getElementById('navbar-signout');
+  const signOutBtn = document.getElementById('navbar-signout') as HTMLButtonElement | null;
   if (signOutBtn) {
     signOutBtn.style.display = token ? 'block' : 'none';
+    signOutBtn.innerText = translations[getCurrentLang()].logout;
   }
 };
   
@@ -95,7 +125,7 @@ document.addEventListener("click", (event) => {
   const linkElement = target.closest("[data-link]") as HTMLAnchorElement | null;
   if (linkElement) {
     event.preventDefault();
-    navigateTo(linkElement.getAttribute("href")!); // Il manquait les parenthèses ici
+    navigateTo(linkElement.getAttribute("href")!);
   }
 });
 
@@ -103,14 +133,13 @@ window.addEventListener("popstate", renderPage);
 
 const navRoutesForNavbar: { [key: string]: string } = {};
 for (const key in routes) {
-  if (key === "/") navRoutesForNavbar[key] = "Home";
-  else if (key === "/pong") navRoutesForNavbar[key] = "Pong";
-  else if (key === "/team") navRoutesForNavbar[key] = "Team";
+  if (key === "/") navRoutesForNavbar[key] = translations[getCurrentLang()].home;
+  else if (key === "/pong") navRoutesForNavbar[key] = "Pong"; // Garde "Pong" tel quel
+  else if (key === "/team") navRoutesForNavbar[key] = translations[getCurrentLang()].team;
 }
 const navbar = createNavbar(navRoutesForNavbar); 
 document.body.prepend(navbar);
 
-// Expose renderPage globally for login.ts
 (window as any).renderPage = renderPage;
 
 renderPage();

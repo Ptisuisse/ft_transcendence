@@ -2,6 +2,8 @@ import '../style.css';
 import { navigateTo } from '../routes.ts';
 import { translations } from '../i18n.ts';
 import { getCurrentLang } from '../components/navbar.ts';
+import { updateTournamentWithWinner } from './tournament.ts';
+import type { TournamentPlayer } from './tournament.ts';
 
 // Stockage des paramètres entre les pages
 interface PongSettings {
@@ -205,17 +207,32 @@ export function PongGamePage(): HTMLElement {
   
   gameWrapper.appendChild(gameOverMessage);
   
-  // Bouton retour au menu
+  // Vérifier si le jeu fait partie d'un match de tournoi
+  const isTournamentMatch = localStorage.getItem('currentTournamentMatch') !== null;
+
+  // Create appropriate button based on context
   const menuButton = document.createElement('button');
   menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors';
-  menuButton.textContent = translations[getCurrentLang()].BackToMenu;
-  menuButton.addEventListener('click', () => {
-    // Nettoyage avant navigation
-    if (typeof cleanup === 'function') {
-      cleanup();
-    }
-    navigateTo('/pong');
-  });
+
+  if (isTournamentMatch) {
+    menuButton.textContent = 'Return to Tournament';
+    menuButton.addEventListener('click', () => {
+      // Nettoyage avant navigation
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+      navigateTo('/pong/tournament');
+    });
+  } else {
+    menuButton.textContent = translations[getCurrentLang()].BackToMenu;
+    menuButton.addEventListener('click', () => {
+      // Nettoyage avant navigation
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+      navigateTo('/pong');
+    });
+  }
   
   element.appendChild(gameWrapper);
   element.appendChild(menuButton);
@@ -238,6 +255,43 @@ export function PongGamePage(): HTMLElement {
           ? `${translations[getCurrentLang()].LeftPlayerWins}!` 
           : `${translations[getCurrentLang()].RightPlayerWins}!`;
         gameOverMessage.classList.remove('hidden');
+        
+        // Si c'est un match de tournoi, mettre à jour le tournoi avec le gagnant
+        const matchData = localStorage.getItem('currentTournamentMatch');
+        if (matchData) {
+          try {
+            const currentMatch = JSON.parse(matchData) as {
+              roundIndex: number;
+              matchIndex: number;
+              player1: TournamentPlayer;
+              player2: TournamentPlayer;
+            };
+            
+            // Récupérer la configuration du tournoi
+            const tournamentConfigStr = localStorage.getItem('tournamentConfig');
+            if (tournamentConfigStr) {
+              const tournamentConfig = JSON.parse(tournamentConfigStr);
+              
+              // Déterminer le joueur gagnant (gauche = player1, droite = player2)
+              const winningPlayer = winner === 'left' ? currentMatch.player1 : currentMatch.player2;
+              
+              // Mettre à jour le tournoi avec le gagnant
+              updateTournamentWithWinner(
+                tournamentConfig,
+                currentMatch.roundIndex,
+                currentMatch.matchIndex,
+                winningPlayer
+              );
+              
+              // Effacer les données du match actuel après un délai
+              setTimeout(() => {
+                localStorage.removeItem('currentTournamentMatch');
+              }, 2000); // Petit délai avant de nettoyer
+            }
+          } catch (e) {
+            console.error('Error updating tournament with winner', e);
+          }
+        }
       }
     });
   }, 100);

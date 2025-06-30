@@ -225,7 +225,7 @@ export function HomePage(): HTMLElement {
 			imageUrl: '/pong.jpg',
 			titleText: translations[getCurrentLang()].TitleMultiPong,
 			descriptionText: translations[getCurrentLang()].MultiPong,
-			linkHref: '/pong'
+			linkHref: '/pong/tournament'
 		},
 		{
 			imageUrl: '/pong.jpg',

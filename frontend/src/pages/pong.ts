@@ -193,6 +193,18 @@ export function PongGamePage(): HTMLElement {
   const gameContainer = createGameContainer(settings.leftPaddleColor, settings.rightPaddleColor);
   gameWrapper.appendChild(gameContainer);
   
+  // Message de fin de jeu (initialement caché)
+  const gameOverMessage = document.createElement('div');
+  gameOverMessage.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-90 p-6 rounded-lg text-center hidden';
+  gameOverMessage.id = 'game-over-message';
+  
+  const gameOverText = document.createElement('h2');
+  gameOverText.className = 'text-white text-2xl mb-4';
+  gameOverText.id = 'winner-text';
+  gameOverMessage.appendChild(gameOverText);
+  
+  gameWrapper.appendChild(gameOverMessage);
+  
   // Bouton retour au menu
   const menuButton = document.createElement('button');
   menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors';
@@ -213,7 +225,21 @@ export function PongGamePage(): HTMLElement {
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
-    cleanup = setupPaddleMovement(settings.aiEnabled);
+    const result = setupPaddleMovement(settings.aiEnabled);
+    cleanup = result.cleanup;
+    
+    // Gestion de la fin de partie
+    result.gameOverPromise.then(winner => {
+      const gameOverMessage = document.getElementById('game-over-message');
+      const winnerText = document.getElementById('winner-text');
+      
+      if (gameOverMessage && winnerText) {
+        winnerText.textContent = winner === 'left' 
+          ? `${translations[getCurrentLang()].LeftPlayerWins}!` 
+          : `${translations[getCurrentLang()].RightPlayerWins}!`;
+        gameOverMessage.classList.remove('hidden');
+      }
+    });
   }, 100);
   
   return element;
@@ -294,11 +320,19 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   const rightScoreElement = document.getElementById('right-score');
 
   if (!leftPaddle || !rightPaddle || !ball || !gameContainer || 
-      !leftScoreElement || !rightScoreElement) return;
+      !leftScoreElement || !rightScoreElement) return { cleanup: () => {}, gameOverPromise: Promise.resolve('none') };
   
   // Score variables
   let leftScore = 0;
   let rightScore = 0;
+  const maxScore = 3; // Score maximum pour gagner
+  let gameOver = false;
+  let gameOverResolve: (winner: string) => void;
+  
+  // Promesse qui sera résolue quand un joueur gagne
+  const gameOverPromise = new Promise<string>(resolve => {
+    gameOverResolve = resolve;
+  });
   
   // Cache initial dimensions to avoid layout thrashing
   const containerWidth = gameContainer.clientWidth;
@@ -351,6 +385,7 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     document.removeEventListener('keydown', keyDownHandler);
     document.removeEventListener('keyup', keyUpHandler);
     cancelAnimationFrame(animationFrameId);
+    gameOver = true;
   };
   
   // Optimized physics settings
@@ -459,8 +494,8 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     // Left paddle collision (continuous)
     if (
       ballSpeedX < 0 && // Only check collision if ball is moving left
-      prevBallX >= leftPaddleX + 15 && // 15 = largeur paddle
-      ballX < leftPaddleX + 15 &&
+      prevBallX >= leftPaddleX && // 15 = largeur paddle
+      ballX < leftPaddleX &&
       // Vérifie si la balle croise la zone verticale de la raquette
       ballY + ballSize > leftPaddleY &&
       ballY < leftPaddleY + paddleHeight
@@ -505,6 +540,13 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
         rightScoreElement.textContent = rightScore.toString();
       }
       
+      // Vérifier si le joueur de droite a gagné
+      if (rightScore >= maxScore) {
+        gameOver = true;
+        gameOverResolve('right');
+        return;
+      }
+      
       // Reset ball to center
       ballX = containerWidth / 2 - ballSize / 2;
       ballY = containerHeight / 2 - ballSize / 2;
@@ -517,6 +559,13 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
       leftScore++;
       if (leftScoreElement) {
         leftScoreElement.textContent = leftScore.toString();
+      }
+      
+      // Vérifier si le joueur de gauche a gagné
+      if (leftScore >= maxScore) {
+        gameOver = true;
+        gameOverResolve('left');
+        return;
       }
       
       // Reset ball to center
@@ -548,8 +597,9 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   }
   
   // Optimized game loop with frame limiting
-  function gameLoop(timestamp: number)
-  {
+  function gameLoop(timestamp: number) {
+    if (gameOver) return; // Arrêter la boucle si le jeu est terminé
+    
     if (!lastTime) lastTime = timestamp;
     
     const frameTime = Math.min(timestamp - lastTime, 50); // Cap at 50ms to prevent spiral of death
@@ -564,6 +614,8 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     
     while (accumulator >= fixedTimeStep && iterations < maxIterations) {
       updatePhysics();
+      // Si le jeu est terminé après une mise à jour physique, sortir de la boucle
+      if (gameOver) break;
       accumulator -= fixedTimeStep;
       iterations++;
     }
@@ -576,12 +628,20 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     // Apply visual updates once per frame regardless of physics steps
     applyChanges();
     
-    // Continue the game loop
-    animationFrameId = requestAnimationFrame(gameLoop);
+    // Continue the game loop if le jeu n'est pas terminé
+    if (!gameOver) {
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
   }
   
   // Start the game loop
   animationFrameId = requestAnimationFrame(gameLoop);
   
-  return cleanup;
+  return { cleanup, gameOverPromise };
 }
+
+// Ajoutez ces traductions dans votre fichier i18n.ts si elles n'existent pas déjà
+/*
+LeftPlayerWins: 'Joueur Gauche Gagne',
+RightPlayerWins: 'Joueur Droite Gagne',
+*/

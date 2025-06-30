@@ -31,6 +31,8 @@ export const translations = {
     Contributions: "Contributions",
     //LoginPage
     // ... autres textes
+    LeftPlayerWins: "Joueur Gauche Gagne", 
+    RightPlayerWins: "Joueur Droite Gagne"
   },
   en: {
     // Navbar link
@@ -64,6 +66,8 @@ export const translations = {
     Contributions: "Contributions",
     //LoginPage
     // ... autres textes
+    LeftPlayerWins: "Left Player Wins",
+    RightPlayerWins: "Right Player Wins"
   },
   es: {
     // Navbar link
@@ -97,5 +101,7 @@ export const translations = {
     Contributions: "Contribuciones",
     //LoginPage
     // ... autres textes
+    LeftPlayerWins: "El jugador de la izquierda gana", 
+    RightPlayerWins: "El jugador de la derecha gana"
     }
 };

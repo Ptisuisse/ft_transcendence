@@ -3,7 +3,7 @@ services:
     build: ./frontend
     container_name: ft_frontend
     networks:
-      - ft_network
+      - network
 
   backend:
     build: ./backend
@@ -12,11 +12,11 @@ services:
       - ./backend:/app
       - /app/node_modules
     env_file:
-      - ./backend/.env
+      - .env
     depends_on:
       - db
     networks:
-      - ft_network
+      - network
 
   db:
     build: ./DataBase
@@ -24,7 +24,7 @@ services:
     volumes:
       - ./DataBase/data:/usr/src/app/data
     networks:
-      - ft_network
+      - network
 
   nginx:
     build:
@@ -37,7 +37,20 @@ services:
       - frontend
       - backend
     networks:
-      - ft_network
+      - network
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    restart: unless-stopped
+    command: -nginx.scrape-uri=http://nginx/metrics
+    depends_on:
+      - nginx
+    networks:
+      - network
+    expose:
+      - 9113
+
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -54,29 +67,31 @@ services:
     expose:
       - 9100
     networks:
-      - ft_network
+      - network
 
   prometheus:
-    image: prom/prometheus:latest
     container_name: prometheus
+    build:
+      context: ./prometheus
     restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
     expose:
       - 9090
     networks:
-      - ft_network
+      - network
 
 networks:
-  ft_network:
+  network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
 volumes:
   prometheus_data: {}
 

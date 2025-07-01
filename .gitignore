@@ -23,6 +23,11 @@ frontend/dist-ssr
 DataBase/dist
 DataBase/dist-ssr
 
+# Environment variables
+.env
+*.env
+backend/.env
+
 # Runtime data
 pids
 *.pid
@@ -59,3 +64,7 @@ profile-*
 profile*
 *clinic*
 *flamegraph*
+
+# db
+DataBase/database.db
+

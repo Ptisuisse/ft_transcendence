@@ -231,7 +231,7 @@ export function HomePage(): HTMLElement {
 			imageUrl: '/pong.jpg',
 			titleText: translations[getCurrentLang()].TitleLeaderboard,
 			descriptionText: translations[getCurrentLang()].Leaderboard,
-			linkHref: '/pong'
+			linkHref: '/pong/multiplayer'
 		}
 	];
 	

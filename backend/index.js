@@ -1,14 +1,7 @@
-// backend/index.js
 require('dotenv').config();
 const fastify = require('fastify')({ logger: true });
 
-// Charge app.js qui va autoload plugins et routes
 fastify.register(require('./app'));
-
-// SUPPRIME cette route, elle fait doublon avec routes/root.js
-// fastify.get('/', async (request, reply) => {
-//   return { message: 'Hello from Fastify!' };
-// });
 
 const start = async () => {
   try {

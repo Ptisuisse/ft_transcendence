@@ -62,7 +62,7 @@ export function PongTournamentPage(): HTMLElement {
   backToMenuBtn.className = 'px-6 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-md transition shadow-md hover:shadow-lg';
   backToMenuBtn.textContent = t('BackToMenu');
   backToMenuBtn.addEventListener('click', () => {
-    navigateTo('localhost');
+    navigateTo('https://localhost');
   });
 
   buttonsContainer.appendChild(backToMenuBtn);
@@ -277,11 +277,6 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   const bracketContainer = document.createElement('div');
   bracketContainer.className = 'flex flex-col items-center bg-gray-900 bg-opacity-70 p-6 rounded-lg border border-purple-500 shadow-lg';
 
-  const title = document.createElement('h2');
-  title.className = 'text-2xl font-bold text-white mb-8';
-  title.textContent = config ? t('TournamentList') : t('JoinTournament');
-  bracketContainer.appendChild(title);
-
   // Structure de l'arbre du tournoi
   const bracket = document.createElement('div');
   bracket.className = 'flex justify-center w-full';
@@ -291,14 +286,14 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   
   if (config && config.playerCount === 4) {
     rounds = [
-      { name: t('SingleElimination'), matches: 2 },
-      { name: t('TournamentFormat'), matches: 1 }
+      { matches: 2 }, // Supprimé le nom du round
+      { matches: 1 }
     ];
   } else {
     rounds = [
-      { name: t('SingleElimination'), matches: 4 },
-      { name: t('DoubleElimination'), matches: 2 },
-      { name: t('TournamentFormat'), matches: 1 }
+      { matches: 4 },
+      { matches: 2 },
+      { matches: 1 }
     ];
   }
 
@@ -309,11 +304,6 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   rounds.forEach((round, roundIndex) => {
     const roundColumn = document.createElement('div');
     roundColumn.className = 'flex flex-col gap-4';
-    
-    const roundTitle = document.createElement('h3');
-    roundTitle.className = 'text-lg font-semibold text-purple-300 mb-2 text-center';
-    roundTitle.textContent = round.name;
-    roundColumn.appendChild(roundTitle);
     
     // Créer les matchs pour ce round
     for (let i = 0; i < round.matches; i++) {
@@ -329,7 +319,6 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       if (isMatchCompleted) {
         // Style pour un match déjà joué
         match.className += ' border-green-700 opacity-90';
-        match.title = t('CreateTournament');
       } else {
         // Style normal pour un match à jouer
         match.className += ' border-cyan-700 hover:border-pink-500 cursor-pointer';
@@ -372,38 +361,24 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
         }
       }
       
-      // Joueurs du match
+      // Joueurs du match - Simplifié pour n'afficher que les noms
       const player1Div = document.createElement('div');
-      player1Div.className = 'text-white font-semibold mb-1 flex justify-between';
-      player1Div.innerHTML = `<span>${player1Name}</span><span>-</span>`;
+      player1Div.className = 'text-white font-semibold mb-1';
+      player1Div.textContent = player1Name;
       player1Div.id = `r${roundIndex}-m${i}-p1`;
       
       const player2Div = document.createElement('div');
-      player2Div.className = 'text-white font-semibold flex justify-between';
-      player2Div.innerHTML = `<span>${player2Name}</span><span>-</span>`;
+      player2Div.className = 'text-white font-semibold';
+      player2Div.textContent = player2Name;
       player2Div.id = `r${roundIndex}-m${i}-p2`;
-      
-      // Add match status indicator
-      const time = document.createElement('div');
-      time.className = 'text-xs mt-2';
-      
-      if (isMatchCompleted) {
-        time.className += ' text-green-500 font-semibold';
-        time.textContent = t('CreateTournament');
-      } else {
-        time.className += ' text-gray-400';
-        time.textContent = t('JoinTournament');
-      }
       
       match.appendChild(player1Div);
       match.appendChild(player2Div);
-      match.appendChild(time);
       
       // Ajouter l'événement de clic seulement si le match n'est pas complété
       // et si les deux joueurs sont connus
       if (!isMatchCompleted && player1 && player2) {
         match.classList.add('hover:bg-gray-700');
-        match.title = t('StartGame');
         match.addEventListener('click', () => {
           startTournamentMatch(roundIndex, i, player1!, player2!);
         });
@@ -417,14 +392,6 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
 
   bracket.appendChild(roundsContainer);
   bracketContainer.appendChild(bracket);
-
-  // Message en dessous de l'arbre du tournoi
-  const message = document.createElement('p');
-  message.className = 'text-gray-300 mt-8 text-center';
-  message.textContent = config 
-    ? t('TournamentRules')
-    : t('JoinTournament');
-  bracketContainer.appendChild(message);
 
   return bracketContainer;
 }

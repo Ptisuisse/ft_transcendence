@@ -1,5 +1,6 @@
 # Global .gitignore for all subprojects
 
+.env
 # Logs
 logs
 *.log

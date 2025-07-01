@@ -1,5 +1,14 @@
 import '../style.css';
 import { navigateTo } from '../routes.ts';
+import { translations } from '../i18n.ts';
+import { getCurrentLang } from '../components/navbar.ts';  // Import the shared function
+
+// Translation helper function
+function t(key: string): string {
+  const lang = getCurrentLang();
+  const langTranslations = translations[lang as keyof typeof translations] || translations.en;
+  return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
+}
 
 export interface TournamentPlayer {
   id: number;
@@ -37,7 +46,7 @@ export function PongTournamentPage(): HTMLElement {
     [filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.5))_drop-shadow(0_2px_2px_rgba(0,0,0,0.3))]
     md:text-6xl
   `;
-  pageTitle.textContent = 'Pong Tournament';
+  pageTitle.textContent = t('TitleTournament');
   container.appendChild(pageTitle);
 
   // Section du tournoi
@@ -51,9 +60,9 @@ export function PongTournamentPage(): HTMLElement {
 
   const backToMenuBtn = document.createElement('button');
   backToMenuBtn.className = 'px-6 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-md transition shadow-md hover:shadow-lg';
-  backToMenuBtn.textContent = 'Back to Pong Menu';
+  backToMenuBtn.textContent = t('BackToMenu');
   backToMenuBtn.addEventListener('click', () => {
-    navigateTo('/pong');
+    navigateTo('localhost');
   });
 
   buttonsContainer.appendChild(backToMenuBtn);
@@ -75,7 +84,7 @@ export function PongTournamentPage(): HTMLElement {
         // Only show the "Create New Tournament" button
         const newTournamentBtn = document.createElement('button');
         newTournamentBtn.className = 'px-8 py-4 mt-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-md transition shadow-lg hover:shadow-xl text-xl font-bold';
-        newTournamentBtn.textContent = 'Start New Tournament';
+        newTournamentBtn.textContent = t('CreateTournament');
         newTournamentBtn.addEventListener('click', () => {
           // Clear the existing tournament config
           localStorage.removeItem('tournamentConfig');
@@ -97,7 +106,7 @@ export function PongTournamentPage(): HTMLElement {
         // Ajouter un bouton pour créer un nouveau tournoi
         const newTournamentBtn = document.createElement('button');
         newTournamentBtn.className = 'px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition shadow-md hover:shadow-lg';
-        newTournamentBtn.textContent = 'Create New Tournament';
+        newTournamentBtn.textContent = t('CreateTournament');
         newTournamentBtn.addEventListener('click', () => {
           // Afficher directement la modale de sélection du nombre de joueurs
           showPlayerCountModal(tournamentSection);
@@ -133,13 +142,13 @@ function showPlayerCountModal(tournamentSection: HTMLElement): void {
   // Titre de la modale
   const modalTitle = document.createElement('h2');
   modalTitle.className = 'text-white text-2xl font-bold mb-6 text-center';
-  modalTitle.textContent = 'Select Tournament Size';
+  modalTitle.textContent = t('ParticipantsNumber');
   modal.appendChild(modalTitle);
 
   // Instructions
   const instructions = document.createElement('p');
   instructions.className = 'text-gray-300 mb-6 text-center';
-  instructions.textContent = 'Choose the number of players for your tournament:';
+  instructions.textContent = t('ParticipantsNumber') + ':';
   modal.appendChild(instructions);
 
   // Boutons pour choisir 4 ou 8 joueurs
@@ -148,7 +157,7 @@ function showPlayerCountModal(tournamentSection: HTMLElement): void {
 
   const fourPlayersBtn = document.createElement('button');
   fourPlayersBtn.className = 'flex-1 py-4 px-6 bg-purple-600 text-white rounded-md hover:bg-purple-500 transition-colors font-bold text-xl';
-  fourPlayersBtn.textContent = '4 Players';
+  fourPlayersBtn.textContent = '4 ' + t('Players');  // Modifié ici
   fourPlayersBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
     showPlayerNamesModal(tournamentSection, 4);
@@ -156,7 +165,7 @@ function showPlayerCountModal(tournamentSection: HTMLElement): void {
 
   const eightPlayersBtn = document.createElement('button');
   eightPlayersBtn.className = 'flex-1 py-4 px-6 bg-cyan-600 text-white rounded-md hover:bg-cyan-500 transition-colors font-bold text-xl';
-  eightPlayersBtn.textContent = '8 Players';
+  eightPlayersBtn.textContent = '8 ' + t('Players');  // Modifié ici
   eightPlayersBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
     showPlayerNamesModal(tournamentSection, 8);
@@ -182,7 +191,7 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
   // Titre de la modale
   const modalTitle = document.createElement('h2');
   modalTitle.className = 'text-white text-2xl font-bold mb-6 text-center';
-  modalTitle.textContent = `Enter Player Names (${playerCount})`;
+  modalTitle.textContent = `${t('Players')} (${playerCount})`;  // Modifié ici
   modal.appendChild(modalTitle);
 
   // Section pour les pseudonymes des joueurs
@@ -195,14 +204,14 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
     
     const playerLabel = document.createElement('label');
     playerLabel.className = 'text-white text-sm block mb-1';
-    playerLabel.textContent = `Player ${i + 1}:`;
+    playerLabel.textContent = `${t('Player')} ${i + 1}:`;  // Modifié ici (singulier)
     
     const playerInput = document.createElement('input');
     playerInput.className = 'w-full bg-gray-700 text-white border border-gray-600 rounded px-3 py-2 focus:outline-none focus:border-purple-500';
     playerInput.type = 'text';
     playerInput.id = `player-${i}`;
-    playerInput.placeholder = `Enter nickname for Player ${i + 1}`;
-    playerInput.value = `Player ${i + 1}`;
+    playerInput.placeholder = `${t('Player')} ${i + 1}`;  // Modifié ici (singulier)
+    playerInput.value = `${t('Player')} ${i + 1}`;  // Modifié ici (singulier)
     
     playerRow.appendChild(playerLabel);
     playerRow.appendChild(playerInput);
@@ -217,7 +226,7 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
 
   const backBtn = document.createElement('button');
   backBtn.className = 'flex-1 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors font-bold';
-  backBtn.textContent = 'Back';
+  backBtn.textContent = t('BackToMenu');
   backBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
     showPlayerCountModal(tournamentSection);
@@ -225,13 +234,13 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
 
   const startTournamentBtn = document.createElement('button');
   startTournamentBtn.className = 'flex-1 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-bold';
-  startTournamentBtn.textContent = 'Start Tournament';
+  startTournamentBtn.textContent = t('CreateTournament');
   startTournamentBtn.addEventListener('click', () => {
     // Récupérer les nicknames des joueurs
     const players: TournamentPlayer[] = [];
     for (let i = 0; i < playerCount; i++) {
       const input = document.getElementById(`player-${i}`) as HTMLInputElement;
-      const nickname = input.value.trim() || `Player ${i + 1}`;
+      const nickname = input.value.trim() || `${t('Player')} ${i + 1}`;  // Modifié ici (singulier)
       players.push({ id: i + 1, nickname });
     }
 
@@ -270,7 +279,7 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = 'text-2xl font-bold text-white mb-8';
-  title.textContent = config ? 'Tournament Bracket' : 'Upcoming Tournament';
+  title.textContent = config ? t('TournamentList') : t('JoinTournament');
   bracketContainer.appendChild(title);
 
   // Structure de l'arbre du tournoi
@@ -282,14 +291,14 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   
   if (config && config.playerCount === 4) {
     rounds = [
-      { name: 'Semi Finals', matches: 2 },
-      { name: 'Final', matches: 1 }
+      { name: t('SingleElimination'), matches: 2 },
+      { name: t('TournamentFormat'), matches: 1 }
     ];
   } else {
     rounds = [
-      { name: 'Quarter Finals', matches: 4 },
-      { name: 'Semi Finals', matches: 2 },
-      { name: 'Final', matches: 1 }
+      { name: t('SingleElimination'), matches: 4 },
+      { name: t('DoubleElimination'), matches: 2 },
+      { name: t('TournamentFormat'), matches: 1 }
     ];
   }
 
@@ -320,7 +329,7 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       if (isMatchCompleted) {
         // Style pour un match déjà joué
         match.className += ' border-green-700 opacity-90';
-        match.title = "Match already played";
+        match.title = t('CreateTournament');
       } else {
         // Style normal pour un match à jouer
         match.className += ' border-cyan-700 hover:border-pink-500 cursor-pointer';
@@ -380,11 +389,10 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       
       if (isMatchCompleted) {
         time.className += ' text-green-500 font-semibold';
-        time.textContent = 'MATCH COMPLETED';
+        time.textContent = t('CreateTournament');
       } else {
         time.className += ' text-gray-400';
-        const randomHour = Math.floor(Math.random() * 12) + 1;
-        time.textContent = `Today at ${randomHour}:00 ${randomHour < 6 ? 'PM' : 'AM'}`;
+        time.textContent = t('JoinTournament');
       }
       
       match.appendChild(player1Div);
@@ -395,7 +403,7 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       // et si les deux joueurs sont connus
       if (!isMatchCompleted && player1 && player2) {
         match.classList.add('hover:bg-gray-700');
-        match.title = "Click to play this match";
+        match.title = t('StartGame');
         match.addEventListener('click', () => {
           startTournamentMatch(roundIndex, i, player1!, player2!);
         });
@@ -414,8 +422,8 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   const message = document.createElement('p');
   message.className = 'text-gray-300 mt-8 text-center';
   message.textContent = config 
-    ? 'Tournament is ready! Matches will begin shortly.' 
-    : 'Join a tournament or create your own to compete with other players!';
+    ? t('TournamentRules')
+    : t('JoinTournament');
   bracketContainer.appendChild(message);
 
   return bracketContainer;
@@ -564,7 +572,7 @@ function createWinnerCelebration(winner: TournamentPlayer): HTMLElement {
   // Add congratulation title
   const congratsTitle = document.createElement('h2');
   congratsTitle.className = 'text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6';
-  congratsTitle.textContent = 'TOURNAMENT CHAMPION';
+  congratsTitle.textContent = t('TitleTournament');
   celebrationContainer.appendChild(congratsTitle);
 
   // Winner name
@@ -576,7 +584,7 @@ function createWinnerCelebration(winner: TournamentPlayer): HTMLElement {
   // Add celebratory message
   const celebMessage = document.createElement('p');
   celebMessage.className = 'text-xl text-gray-300 mb-8 text-center max-w-md';
-  celebMessage.textContent = 'Congratulations to our tournament champion! A remarkable display of skill and determination has led to victory.';
+  celebMessage.textContent = t('TournamentRules');
   celebrationContainer.appendChild(celebMessage);
 
   return celebrationContainer;

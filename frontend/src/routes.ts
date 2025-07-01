@@ -1,9 +1,9 @@
 import './style.css'
-//import { createNavbar } from './components/navbar.ts'
 import { createNavbar, getCurrentLang } from './components/navbar.ts'
 import { HomePage } from './pages/main.ts';
 import { PongMenuPage, PongGamePage } from './pages/pong.ts';
-import { PongTournamentPage } from './pages/tournament.ts'; // Import de la nouvelle page
+import { PongTournamentPage } from './pages/tournament.ts';
+import { PongMultiplayerPage, PongMultiplayerGamePage } from './pages/pong_multiplayer.ts';
 import { LoginPage } from './pages/login.ts';
 import { TeamPage } from './pages/team.ts';
 import { translations } from './i18n.ts';
@@ -14,9 +14,12 @@ const routes: { [key: string]: PageRenderFunction | string } = {
     "/": HomePage,
     "/pong": PongMenuPage,
     "/pong/game": PongGamePage,
-    "/pong/tournament": PongTournamentPage, // Ajout de la nouvelle route
+    "/pong/tournament": PongTournamentPage,
+    "/pong/multiplayer": PongMultiplayerPage,
     "/login": LoginPage,
     "/team" : TeamPage,
+    "/pong_multiplayer": PongMultiplayerPage,      // Add this line
+    "/pong_multiplayer/game": PongMultiplayerGamePage,  // Add this line
 };
 
 export const navigateTo = (url: string) => {
@@ -24,7 +27,8 @@ export const navigateTo = (url: string) => {
   renderPage();
 };
 
-const protectedRoutes = ['/', '/team', '/pong', '/pong/game', '/pong/tournament']; // Ajout de la route aux routes protégées
+const protectedRoutes = ['/', '/team', '/pong', '/pong/game', '/pong/tournament', '/pong/multiplayer', 
+                         '/pong_multiplayer', '/pong_multiplayer/game']; // Add the new routes
 
 const renderPage = () => {
   let path = window.location.pathname;

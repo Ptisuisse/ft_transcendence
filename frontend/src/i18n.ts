@@ -10,10 +10,10 @@ export const translations = {
     play: "Jouer",
     TitlePongGame: "Jeu Pong",
     PongGame: "Un simple jeu Pong",
-    TitleMultiPong: "Pong multijoueur",
-    MultiPong: "Un jeu Pong multijoueur",
-    TitleLeaderboard: "Classement",
-    Leaderboard: "Classement Pong",
+    TitleMultiPong: "Tournoi de Pong",
+    MultiPong: "Affronte tes amis dans un tournoi",
+    TitleLeaderboard: "Pong multijoueur",
+    Leaderboard: "Un jeu Pong multijoueur",
     team: "Équipe",
     //PongPage
     TitlePongPage: "Page Pong",
@@ -32,7 +32,26 @@ export const translations = {
     //LoginPage
     // ... autres textes
     LeftPlayerWins: "Joueur Gauche Gagne", 
-    RightPlayerWins: "Joueur Droite Gagne"
+    RightPlayerWins: "Joueur Droite Gagne",
+    
+    //TournamentPage
+    Player: "Joueur",
+    Players: "Joueurs",
+    TitleTournament: "Création de tournoi",
+    TournamentName: "Nom du tournoi",
+    TournamentDescription: "Description",
+    TournamentDate: "Date du tournoi",
+    TournamentStartTime: "Heure de début",
+    TournamentFormat: "Format du tournoi",
+    SingleElimination: "Élimination directe",
+    DoubleElimination: "Double élimination",
+    RoundRobin: "Round Robin",
+    ParticipantsNumber: "Nombre de participants",
+    TournamentRules: "Règles du tournoi",
+    CreateTournament: "Créer le tournoi",
+    CancelTournament: "Annuler",
+    JoinTournament: "Rejoindre le tournoi",
+    TournamentList: "Liste des tournois"
   },
   en: {
     // Navbar link
@@ -45,10 +64,10 @@ export const translations = {
     play: "Play",
     TitlePongGame: "Pong Game",
     PongGame: "A simple Pong game",
-    TitleMultiPong: "Multiplayer Pong",
-    MultiPong: "A multiplayer Pong game",
-    TitleLeaderboard: "Leaderboard",
-    Leaderboard: "Pong Leaderboard",
+    TitleMultiPong: "Pong Tournament",
+    MultiPong: "Challenge your friends in a pong tournament",
+    TitleLeaderboard: "Multiplayer Pong",
+    Leaderboard: "A multiplayer Pong game",
     team: "Team",
     //PongPage
     TitlePongPage: "Pong Page",
@@ -67,7 +86,26 @@ export const translations = {
     //LoginPage
     // ... autres textes
     LeftPlayerWins: "Left Player Wins",
-    RightPlayerWins: "Right Player Wins"
+    RightPlayerWins: "Right Player Wins",
+    
+    //TournamentPage
+    Player: "Player",
+    Players: "Players",
+    TitleTournament: "Tournament Creation",
+    TournamentName: "Tournament Name",
+    TournamentDescription: "Description",
+    TournamentDate: "Tournament Date",
+    TournamentStartTime: "Start Time",
+    TournamentFormat: "Tournament Format",
+    SingleElimination: "Single Elimination",
+    DoubleElimination: "Double Elimination",
+    RoundRobin: "Round Robin",
+    ParticipantsNumber: "Number of Participants",
+    TournamentRules: "Tournament Rules",
+    CreateTournament: "Create Tournament",
+    CancelTournament: "Cancel",
+    JoinTournament: "Join Tournament",
+    TournamentList: "Tournament List"
   },
   es: {
     // Navbar link
@@ -80,10 +118,10 @@ export const translations = {
     play: "Jugar",
     TitlePongGame: "Juego Pong",
     PongGame: "Un juego Pong simple",
-    TitleMultiPong: "Pong multijugador",
-    MultiPong: "Un juego Pong multijugador",
-    TitleLeaderboard: "Tabla de clasificación",
-    Leaderboard: "Tabla de clasificación Pong",
+    TitleMultiPong: "Torneo de Pong",
+    MultiPong: "Compite contra tus amigos en un torneo",
+    TitleLeaderboard: "Pong multijugador",
+    Leaderboard: "Un juego Pong multijugador",
     team: "Equipo",
     //PongPage
     TitlePongPage: "Página Pong",
@@ -102,6 +140,25 @@ export const translations = {
     //LoginPage
     // ... autres textes
     LeftPlayerWins: "El jugador de la izquierda gana", 
-    RightPlayerWins: "El jugador de la derecha gana"
-    }
+    RightPlayerWins: "El jugador de la derecha gana",
+    
+    //TournamentPage
+    Player: "Jugador",
+    Players: "Jugadores",
+    TitleTournament: "Creación de torneo",
+    TournamentName: "Nombre del torneo",
+    TournamentDescription: "Descripción",
+    TournamentDate: "Fecha del torneo",
+    TournamentStartTime: "Hora de inicio",
+    TournamentFormat: "Formato del torneo",
+    SingleElimination: "Eliminación simple",
+    DoubleElimination: "Eliminación doble",
+    RoundRobin: "Round Robin",
+    ParticipantsNumber: "Número de participantes",
+    TournamentRules: "Reglas del torneo",
+    CreateTournament: "Crear torneo",
+    CancelTournament: "Cancelar",
+    JoinTournament: "Unirse al torneo",
+    TournamentList: "Lista de torneos"
+  }
 };

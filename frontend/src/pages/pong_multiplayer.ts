@@ -15,11 +15,11 @@ interface PongMultiplayerSettings {
 // Page du menu
 export function PongMultiplayerMenuPage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'flex flex-col justify-center items-center h-screen';
+  element.className = 'Parent p-5';
   
   // Menu container
   const menuModal = document.createElement('div');
-  menuModal.className = 'w-[500px] bg-gray-800 border-2 border-purple-500 rounded-lg p-6 shadow-xl';
+  menuModal.className = 'w-full max-w-[500px] bg-gray-800 border-2 border-purple-500 rounded-lg p-4 sm:p-6 shadow-xl mx-auto';
 
   // Menu title
   const menuTitle = document.createElement('h2');
@@ -674,12 +674,11 @@ function setupPaddleMovement() {
     ballX = containerWidth / 2 - ballSize / 2;
     ballY = containerHeight / 2 - ballSize / 2;
     
-    // Choisir une direction aléatoire pour la balle
-    const angle = Math.random() * 2 * Math.PI; // Angle entre 0 et 2π
-    ballSpeedX = Math.cos(angle) * initialSpeed;
-    ballSpeedY = Math.sin(angle) * initialSpeed;
+    // Choose random direction for ball without using unused angle variable
+    ballSpeedX = Math.random() > 0.5 ? initialSpeed : -initialSpeed;
+    ballSpeedY = Math.random() > 0.5 ? initialSpeed : -initialSpeed;
     
-    // Assurer une vitesse minimale sur les axes X et Y
+    // Ensure minimum velocity on X and Y axes
     if (Math.abs(ballSpeedX) < 0.5) ballSpeedX = ballSpeedX > 0 ? 0.5 : -0.5;
     if (Math.abs(ballSpeedY) < 0.5) ballSpeedY = ballSpeedY > 0 ? 0.5 : -0.5;
   }

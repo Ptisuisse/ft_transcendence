@@ -4,6 +4,14 @@ import { translations } from '../i18n.ts';
 import { getCurrentLang } from '../components/navbar.ts';
 import { updateTournamentWithWinner } from './tournament.ts';
 import type { TournamentPlayer } from './tournament.ts';
+import { gameState } from '../gameState.ts';
+
+// Translation helper function
+function t(key: string): string {
+  const lang = getCurrentLang();
+  const langTranslations = translations[lang as keyof typeof translations] || translations.en;
+  return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
+}
 
 // Stockage des paramètres entre les pages
 interface PongSettings {
@@ -11,22 +19,48 @@ interface PongSettings {
   leftPaddleColor: string;
   rightPaddleColor: string;
   aiEnabled: boolean;
+  powerupsEnabled: boolean; // New setting for power-ups
 }
 
 // Page du menu
 export function PongMenuPage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'flex flex-col justify-center items-center h-screen';
+  // Replace the current className with Parent for responsive layout
+  element.className = 'Parent p-5 flex flex-col items-center';
   
-  // Menu container
+  // Make the menu container responsive
   const menuModal = document.createElement('div');
-  menuModal.className = 'w-[400px] bg-gray-800 border-2 border-purple-500 rounded-lg p-6 shadow-xl';
+  menuModal.className = 'w-full max-w-[400px] bg-gray-800 border-2 border-purple-500 rounded-lg p-4 sm:p-6 shadow-xl mx-auto';
+
+  // Vérifier si c'est un match de tournoi
+  const isTournamentMatch = localStorage.getItem('currentTournamentMatch') !== null;
+  let currentMatch: any = null;
+  
+  if (isTournamentMatch) {
+    try {
+      currentMatch = JSON.parse(localStorage.getItem('currentTournamentMatch')!);
+    } catch (e) {
+      console.error('Failed to parse tournament match data');
+    }
+  }
 
   // Menu title
   const menuTitle = document.createElement('h2');
   menuTitle.className = 'text-white text-2xl font-bold mb-6 text-center';
-  menuTitle.textContent = translations[getCurrentLang()].PongSettings;
+  menuTitle.textContent = isTournamentMatch ? t('TournamentMatch') : translations[getCurrentLang()].PongSettings;
   menuModal.appendChild(menuTitle);
+
+  // Afficher les joueurs du tournoi si c'est un match de tournoi
+  if (isTournamentMatch && currentMatch) {
+    const playersInfo = document.createElement('div');
+    playersInfo.className = 'bg-gray-700 p-3 rounded-md mb-6 text-center';
+    playersInfo.innerHTML = `
+      <p class="text-white mb-2">${t('Player')} 1: <span class="font-bold text-red-400">${currentMatch.player1.nickname}</span></p>
+      <p class="text-white">VS</p>
+      <p class="text-white mt-2">${t('Player')} 2: <span class="font-bold text-blue-400">${currentMatch.player2.nickname}</span></p>
+    `;
+    menuModal.appendChild(playersInfo);
+  }
 
   // Ball color selection
   const colorSection = document.createElement('div');
@@ -76,64 +110,126 @@ export function PongMenuPage(): HTMLElement {
   rightPaddleSection.appendChild(rightPaddleColorPicker);
   menuModal.appendChild(rightPaddleSection);
   
-  // AI section
-  const aiSection = document.createElement('div');
-  aiSection.className = 'mb-6';
+  // AI section - afficher uniquement si ce n'est PAS un match de tournoi
+  if (!isTournamentMatch) {
+    const aiSection = document.createElement('div');
+    aiSection.className = 'mb-6';
+    
+    const aiLabel = document.createElement('p');
+    aiLabel.className = 'text-white mb-2';
+    aiLabel.textContent = translations[getCurrentLang()].EnableIA;
+    aiSection.appendChild(aiLabel);
+
+    // AI toggle
+    const toggleContainer = document.createElement('div');
+    toggleContainer.className = 'flex items-center justify-between';
+
+    const humanLabel = document.createElement('span');
+    humanLabel.className = 'text-white text-sm';
+    humanLabel.textContent = translations[getCurrentLang()].TwoPlayers;
+
+    const aiLabel2 = document.createElement('span');
+    aiLabel2.className = 'text-white text-sm';
+    aiLabel2.textContent = translations[getCurrentLang()].VersusIA;
+
+    const toggleSwitch = document.createElement('label');
+    toggleSwitch.className = 'relative inline-block w-12 h-6 mx-4';
+
+    const toggleInput = document.createElement('input');
+    toggleInput.type = 'checkbox';
+    toggleInput.className = 'opacity-0 w-0 h-0';
+    toggleInput.checked = false;
+
+    const toggleSlider = document.createElement('span');
+    toggleSlider.className = 'absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-400 rounded-full transition-all duration-300';
+    toggleSlider.style.transition = '0.4s';
+    
+    const toggleButton = document.createElement('span');
+    toggleButton.className = 'absolute left-1 bottom-1 w-4 h-4 bg-white rounded-full transition-all duration-300';
+    toggleButton.style.transition = '0.4s';
+    
+    toggleInput.addEventListener('change', () => {
+      if (toggleInput.checked) {
+        toggleSlider.classList.remove('bg-gray-400');
+        toggleSlider.classList.add('bg-green-500');
+        toggleButton.style.transform = 'translateX(24px)';
+      } else {
+        toggleSlider.classList.remove('bg-green-500');
+        toggleSlider.classList.add('bg-gray-400');
+        toggleButton.style.transform = 'translateX(0)';
+      }
+    });
+    
+    toggleSlider.appendChild(toggleButton);
+    toggleSwitch.appendChild(toggleInput);
+    toggleSwitch.appendChild(toggleSlider);
+    toggleContainer.appendChild(humanLabel);
+    toggleContainer.appendChild(toggleSwitch);
+    toggleContainer.appendChild(aiLabel2);
+    
+    aiSection.appendChild(toggleContainer);
+    menuModal.appendChild(aiSection);
+  }
   
-  const aiLabel = document.createElement('p');
-  aiLabel.className = 'text-white mb-2';
-  aiLabel.textContent = translations[getCurrentLang()].EnableIA;
-  aiSection.appendChild(aiLabel);
+  // Power-ups section
+  const powerupsSection = document.createElement('div');
+  powerupsSection.className = 'mb-6';
 
-  // AI toggle
-  const toggleContainer = document.createElement('div');
-  toggleContainer.className = 'flex items-center justify-between';
+  const powerupsLabel = document.createElement('p');
+  powerupsLabel.className = 'text-white mb-2';
+  powerupsLabel.textContent = translations[getCurrentLang()].EnablePowerups || "Enable Power-ups";
+  powerupsSection.appendChild(powerupsLabel);
 
-  const humanLabel = document.createElement('span');
-  humanLabel.className = 'text-white text-sm';
-  humanLabel.textContent = translations[getCurrentLang()].TwoPlayers;
+  // Power-ups toggle
+  const powerupsContainer = document.createElement('div');
+  powerupsContainer.className = 'flex items-center justify-between';
 
-  const aiLabel2 = document.createElement('span');
-  aiLabel2.className = 'text-white text-sm';
-  aiLabel2.textContent = translations[getCurrentLang()].VersusIA;
+  const normalGameLabel = document.createElement('span');
+  normalGameLabel.className = 'text-white text-sm';
+  normalGameLabel.textContent = translations[getCurrentLang()].NormalGame || "Normal Game";
 
-  const toggleSwitch = document.createElement('label');
-  toggleSwitch.className = 'relative inline-block w-12 h-6 mx-4';
+  const powerupsGameLabel = document.createElement('span');
+  powerupsGameLabel.className = 'text-white text-sm';
+  powerupsGameLabel.textContent = translations[getCurrentLang()].PowerupsGame || "Power-ups";
 
-  const toggleInput = document.createElement('input');
-  toggleInput.type = 'checkbox';
-  toggleInput.className = 'opacity-0 w-0 h-0';
-  toggleInput.checked = false;
+  const powerupsToggleSwitch = document.createElement('label');
+  powerupsToggleSwitch.className = 'relative inline-block w-12 h-6 mx-4';
 
-  const toggleSlider = document.createElement('span');
-  toggleSlider.className = 'absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-400 rounded-full transition-all duration-300';
-  toggleSlider.style.transition = '0.4s';
-  
-  const toggleButton = document.createElement('span');
-  toggleButton.className = 'absolute left-1 bottom-1 w-4 h-4 bg-white rounded-full transition-all duration-300';
-  toggleButton.style.transition = '0.4s';
-  
-  toggleInput.addEventListener('change', () => {
-    if (toggleInput.checked) {
-      toggleSlider.classList.remove('bg-gray-400');
-      toggleSlider.classList.add('bg-green-500');
-      toggleButton.style.transform = 'translateX(24px)';
+  const powerupsToggleInput = document.createElement('input');
+  powerupsToggleInput.type = 'checkbox';
+  powerupsToggleInput.className = 'opacity-0 w-0 h-0';
+  powerupsToggleInput.id = 'powerups-toggle'; // Ajout d'un ID
+  powerupsToggleInput.checked = false;
+
+  const powerupsToggleSlider = document.createElement('span');
+  powerupsToggleSlider.className = 'absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-400 rounded-full transition-all duration-300';
+  powerupsToggleSlider.style.transition = '0.4s';
+
+  const powerupsToggleButton = document.createElement('span');
+  powerupsToggleButton.className = 'absolute left-1 bottom-1 w-4 h-4 bg-white rounded-full transition-all duration-300';
+  powerupsToggleButton.style.transition = '0.4s';
+
+  powerupsToggleInput.addEventListener('change', () => {
+    if (powerupsToggleInput.checked) {
+      powerupsToggleSlider.classList.remove('bg-gray-400');
+      powerupsToggleSlider.classList.add('bg-green-500');
+      powerupsToggleButton.style.transform = 'translateX(24px)';
     } else {
-      toggleSlider.classList.remove('bg-green-500');
-      toggleSlider.classList.add('bg-gray-400');
-      toggleButton.style.transform = 'translateX(0)';
+      powerupsToggleSlider.classList.remove('bg-green-500');
+      powerupsToggleSlider.classList.add('bg-gray-400');
+      powerupsToggleButton.style.transform = 'translateX(0)';
     }
   });
-  
-  toggleSlider.appendChild(toggleButton);
-  toggleSwitch.appendChild(toggleInput);
-  toggleSwitch.appendChild(toggleSlider);
-  toggleContainer.appendChild(humanLabel);
-  toggleContainer.appendChild(toggleSwitch);
-  toggleContainer.appendChild(aiLabel2);
-  
-  aiSection.appendChild(toggleContainer);
-  menuModal.appendChild(aiSection);
+
+  powerupsToggleSlider.appendChild(powerupsToggleButton);
+  powerupsToggleSwitch.appendChild(powerupsToggleInput);
+  powerupsToggleSwitch.appendChild(powerupsToggleSlider);
+  powerupsContainer.appendChild(normalGameLabel);
+  powerupsContainer.appendChild(powerupsToggleSwitch);
+  powerupsContainer.appendChild(powerupsGameLabel);
+
+  powerupsSection.appendChild(powerupsContainer);
+  menuModal.appendChild(powerupsSection);
   
   // Start button
   const startButton = document.createElement('button');
@@ -145,7 +241,8 @@ export function PongMenuPage(): HTMLElement {
       ballColor: ballColorPicker.value,
       leftPaddleColor: leftPaddleColorPicker.value,
       rightPaddleColor: rightPaddleColorPicker.value,
-      aiEnabled: toggleInput.checked
+      aiEnabled: isTournamentMatch ? false : (document.querySelector('input[type="checkbox"]') as HTMLInputElement)?.checked || false,
+      powerupsEnabled: (document.getElementById('powerups-toggle') as HTMLInputElement)?.checked || false
     };
     
     // Stocker dans localStorage pour y accéder depuis la page de jeu
@@ -155,23 +252,48 @@ export function PongMenuPage(): HTMLElement {
     navigateTo('/pong/game');
   });
   
-  menuModal.appendChild(startButton);
-  element.appendChild(menuModal);
+  // Ajouter un bouton pour annuler le match de tournoi si nécessaire
+  if (isTournamentMatch) {
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'w-full flex gap-4';
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'flex-1 bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 transition-colors font-bold';
+    cancelButton.textContent = t('CancelMatch');
+    cancelButton.addEventListener('click', () => {
+      localStorage.removeItem('currentTournamentMatch');
+      navigateTo('/pong/tournament');
+    });
+    
+    startButton.className = 'flex-1 bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors font-bold';
+    
+    buttonsContainer.appendChild(cancelButton);
+    buttonsContainer.appendChild(startButton);
+    menuModal.appendChild(buttonsContainer);
+  } else {
+    menuModal.appendChild(startButton);
+  }
   
+  element.appendChild(menuModal);
   return element;
 }
 
 // Page du jeu
 export function PongGamePage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'flex flex-col justify-center items-center h-screen';
+  element.className = 'Parent p-5';
+  
+  // Make game wrapper responsive
+  const gameWrapper = document.createElement('div');
+  gameWrapper.className = 'relative w-full max-w-[800px] mx-auto';
   
   // Charger les paramètres
   let settings: PongSettings = {
     ballColor: '#FFFFFF',
     leftPaddleColor: '#FF0000',
     rightPaddleColor: '#00AAFF',
-    aiEnabled: false
+    aiEnabled: false,
+    powerupsEnabled: false // Valeur par défaut pour les power-ups
   };
   
   try {
@@ -182,10 +304,6 @@ export function PongGamePage(): HTMLElement {
   } catch (error) {
     console.error('Failed to load game settings:', error);
   }
-  
-  // Conteneur de jeu
-  const gameWrapper = document.createElement('div');
-  gameWrapper.className = 'relative w-[800px]';
   
   // Tableau de score
   const scoreBoard = createScoreBoard(settings.leftPaddleColor, settings.rightPaddleColor);
@@ -207,12 +325,31 @@ export function PongGamePage(): HTMLElement {
   
   gameWrapper.appendChild(gameOverMessage);
   
-  // Vérifier si le jeu fait partie d'un match de tournoi
-  const isTournamentMatch = localStorage.getItem('currentTournamentMatch') !== null;
+  // Vérifier si le jeu fait partie d'un match de tournoi valide
+  let isTournamentMatch = false;
+  let currentMatchData = localStorage.getItem('currentTournamentMatch');
+
+  if (currentMatchData) {
+    try {
+      const currentMatch = JSON.parse(currentMatchData);
+      // Vérifier que le match vient bien de la page de tournoi
+      isTournamentMatch = currentMatch && currentMatch.source === 'tournament';
+      
+      if (!isTournamentMatch) {
+        // Si ce n'est pas un match valide, nettoyer le localStorage
+        localStorage.removeItem('currentTournamentMatch');
+        console.log('Match de tournoi invalide détecté et nettoyé');
+      }
+    } catch (e) {
+      // En cas d'erreur de parsing, nettoyer
+      localStorage.removeItem('currentTournamentMatch');
+      console.error('Erreur lors de la vérification du match de tournoi', e);
+    }
+  }
 
   // Create appropriate button based on context
   const menuButton = document.createElement('button');
-  menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors';
+  menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors self-center';
 
   if (isTournamentMatch) {
     menuButton.textContent = 'Return to Tournament';
@@ -242,8 +379,11 @@ export function PongGamePage(): HTMLElement {
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
-    const result = setupPaddleMovement(settings.aiEnabled);
+    const result = setupPaddleMovement(settings.aiEnabled, settings.powerupsEnabled);
     cleanup = result.cleanup;
+    
+    // Register the cleanup function with the global game state
+    gameState.registerCleanup(result.cleanup);
     
     // Gestion de la fin de partie
     result.gameOverPromise.then(winner => {
@@ -258,7 +398,10 @@ export function PongGamePage(): HTMLElement {
         
         // Si c'est un match de tournoi, mettre à jour le tournoi avec le gagnant
         const matchData = localStorage.getItem('currentTournamentMatch');
-        if (matchData) {
+        const matchAborted = localStorage.getItem('matchAborted');
+        
+        // Ne pas mettre à jour le tournoi si le match a été abandonné
+        if (matchData && !matchAborted) {
           try {
             const currentMatch = JSON.parse(matchData) as {
               roundIndex: number;
@@ -286,16 +429,31 @@ export function PongGamePage(): HTMLElement {
               // Effacer les données du match actuel après un délai
               setTimeout(() => {
                 localStorage.removeItem('currentTournamentMatch');
-              }, 2000); // Petit délai avant de nettoyer
+              }, 2000);
             }
           } catch (e) {
             console.error('Error updating tournament with winner', e);
           }
+        } else if (matchAborted) {
+          // Nettoyer les données si le match a été abandonné
+          localStorage.removeItem('currentTournamentMatch');
+          localStorage.removeItem('matchAborted');
         }
       }
     });
+    
+    // Ajouter l'écouteur d'événement beforeunload
+    const handleBeforeUnload = () => {
+      gameState.executeCleanup();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Store a reference to remove it later if needed
+    (element as any).__cleanupHandler = handleBeforeUnload;
   }, 100);
   
+  // Ne retourner que l'élément HTML, pas de fonction de nettoyage
   return element;
 }
 
@@ -307,7 +465,8 @@ export function PongPage(): HTMLElement {
 // Fonctions utilitaires modifiées pour utiliser les paramètres
 function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const scoreBoard = document.createElement('div');
-  scoreBoard.className = 'flex justify-center items-center w-[800px] mb-4 text-4xl font-bold';
+  // Make it responsive
+  scoreBoard.className = 'flex justify-center items-center w-full max-w-[800px] mb-2 sm:mb-4 text-2xl sm:text-4xl font-bold';
   
   const leftScore = document.createElement('div');
   leftScore.className = 'mx-8';
@@ -334,29 +493,31 @@ function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDi
 
 function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const border = document.createElement('div');
-  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] bg-gray-900 relative overflow-hidden';
+  // Make it responsive with aspect ratio preservation
+  border.className = 'border-2 border-solid border-green-500 w-full max-w-[800px] aspect-[4/3] bg-gray-900 relative overflow-hidden';
   border.id = 'game-container';
   
   const leftPaddle = document.createElement('div');
   leftPaddle.className = 'absolute left-[10px] top-0 w-[15px] h-[100px]';
   leftPaddle.id = 'left-paddle';
   leftPaddle.style.backgroundColor = leftColor;
-  leftPaddle.style.willChange = 'transform';
-  leftPaddle.style.transform = 'translate3d(0, 250px, 0)';
+  leftPaddle.style.willChange = 'transform, height';
+  // Ne pas définir de position Y initiale fixe
+  leftPaddle.style.transition = 'height 0.3s ease-in-out';
   
   const rightPaddle = document.createElement('div');
   rightPaddle.className = 'absolute right-[10px] top-0 w-[15px] h-[100px]';
   rightPaddle.id = 'right-paddle';
   rightPaddle.style.backgroundColor = rightColor;
-  rightPaddle.style.willChange = 'transform';
-  rightPaddle.style.transform = 'translate3d(0, 250px, 0)';
+  rightPaddle.style.willChange = 'transform, height';
+  // Ne pas définir de position Y initiale fixe
+  rightPaddle.style.transition = 'height 0.3s ease-in-out';
 
   const ball = document.createElement('div');
   ball.className = 'absolute w-[20px] h-[20px] rounded-full';
   ball.id = 'ball';
   ball.style.willChange = 'transform';
-  ball.style.transform = 'translate3d(390px, 290px, 0)';
-
+  
   border.appendChild(leftPaddle);
   border.appendChild(rightPaddle);
   border.appendChild(ball);
@@ -365,7 +526,7 @@ function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTM
 }
 
 // Garder le reste des fonctions inchangées
-function setupPaddleMovement(aiEnabled: boolean = false) {
+function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolean = false) {
   const leftPaddle = document.getElementById('left-paddle');
   const rightPaddle = document.getElementById('right-paddle');
   const ball = document.getElementById('ball');
@@ -392,18 +553,19 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   const containerWidth = gameContainer.clientWidth;
   const containerHeight = gameContainer.clientHeight;
   const paddleHeight = 100;
+  const ballSize = 20;  // Déplacé ici avant son utilisation
   
-  let leftPaddleY = 250;
-  let rightPaddleY = 250;
+  // Calculer la position initiale en fonction de la hauteur du conteneur
+  let leftPaddleY = (containerHeight - paddleHeight) / 2;
+  let rightPaddleY = (containerHeight - paddleHeight) / 2;
   const paddleSpeed = 5;
   
-  // Ball properties
-  let ballX = 390;
-  let ballY = 290;
+  // Ball properties - centrer la balle dans le conteneur
+  let ballX = (containerWidth - ballSize) / 2;
+  let ballY = (containerHeight - ballSize) / 2;
   let initialSpeed = 4;
   let ballSpeedX = initialSpeed;
   let ballSpeedY = initialSpeed * 0.3;
-  const ballSize = 20;
   const speedIncrement = 1;
   let maxSpeed = 12;
   
@@ -439,18 +601,34 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     document.removeEventListener('keydown', keyDownHandler);
     document.removeEventListener('keyup', keyUpHandler);
     cancelAnimationFrame(animationFrameId);
+    if (powerupTimer !== null) {
+      clearTimeout(powerupTimer);
+      powerupTimer = null;
+    }
+    // Clean up collectible if it exists
+    if (collectibleElement && collectibleElement.parentNode) {
+      gameContainer.removeChild(collectibleElement);
+      collectibleElement = null;
+    }
     gameOver = true;
+    
+    // Si on nettoie à cause d'une navigation, marquer le match comme abandonné
+    const matchData = localStorage.getItem('currentTournamentMatch');
+    if (matchData) {
+      const matchAborted = { aborted: true };
+      localStorage.setItem('matchAborted', JSON.stringify(matchAborted));
+    }
   };
   
   // Optimized physics settings
-  const fixedTimeStep = 1000 / 60; // Réduit à 60Hz pour plus de performance
+  const fixedTimeStep = 1000 / 60; // Réduits à 60Hz pour plus de performance
   let lastTime = 0;
   let accumulator = 0;
   let animationFrameId = 0;
   
   // Précalculer des valeurs utilisées fréquemment
   const paddleTop = 0;
-  const paddleBottom = containerHeight - paddleHeight;
+  // const paddleBottom = containerHeight - paddleHeight; // This variable is no longer needed
   // Remove this unused variable
   // const ballRight = containerWidth - ballSize;  
   const ballBottom = containerHeight - ballSize;
@@ -466,18 +644,43 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   let pendingBallX = ballX;
   let pendingBallY = ballY;
   
-  // Modify the update physics function to include AI logic
+  // Define paddle dimensions for normal and power-up states
+  const normalPaddleHeight = paddleHeight;
+  const giantPaddleHeight = paddleHeight * 2;
+  
+  // Power-up state
+  let powerupActive = false;
+  let powerupAffectedPaddle: 'left' | 'right' | null = null;
+  let powerupTimer: number | null = null;
+  let powerupDuration = 5000; // 5 seconds
+  let lastPowerupTime = 0;
+  let powerupCooldown = 500; // 10 seconds between power-ups
+  
+  // Collectible state
+  let collectibleElement: HTMLDivElement | null = null;
+  let collectibleX = 0;
+  let collectibleY = 0;
+  
+  // Modify the updatePhysics function to handle power-ups
   function updatePhysics()
   {
     // Move left paddle with keyboard input
     if (keys.w) leftPaddleY = Math.max(paddleTop, leftPaddleY - paddleSpeed);
-    if (keys.s) leftPaddleY = Math.min(paddleBottom, leftPaddleY + paddleSpeed);
+    if (keys.s) {
+      // Get current left paddle height based on power-up state
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
+        ? giantPaddleHeight 
+        : normalPaddleHeight;
+      // Dynamic bottom boundary
+      const leftPaddleBottom = containerHeight - currentLeftPaddleHeight;
+      leftPaddleY = Math.min(leftPaddleBottom, leftPaddleY + paddleSpeed);
+    }
     
     // Move right paddle based on AI status
     if (aiEnabled)
     {
-      // L'IA "regarde" la balle toutes les 1s (temps réel)
-      const now = performance.now();
+      //
+      const now = performance.now(); // Add this line to define 'now'
       if (now - aiLastUpdate > 1000) {
         aiLastUpdate = now;
 
@@ -499,7 +702,10 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
               simSpeedY = -simSpeedY;
             }
           }
-          aiTargetY = simY + ballSize / 2 - paddleHeight / 2;
+          const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right'
+            ? giantPaddleHeight 
+            : normalPaddleHeight;
+          aiTargetY = simY + ballSize / 2 - currentRightPaddleHeight / 2;
         } else {
           aiTargetY = containerHeight / 2 - paddleHeight / 2;
         }
@@ -520,12 +726,24 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
 
       // Applique le déplacement comme un joueur humain
       if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
-      if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
+      if (keys.arrowdown) {
+        const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
+          ? giantPaddleHeight 
+          : normalPaddleHeight;
+        const rightPaddleBottom = containerHeight - currentRightPaddleHeight;
+        rightPaddleY = Math.min(rightPaddleBottom, rightPaddleY + paddleSpeed);
+      }
     } 
     else 
     {
       if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
-      if (keys.arrowdown) rightPaddleY = Math.min(paddleBottom, rightPaddleY + paddleSpeed);
+      if (keys.arrowdown) {
+        const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
+          ? giantPaddleHeight 
+          : normalPaddleHeight;
+        const rightPaddleBottom = containerHeight - currentRightPaddleHeight;
+        rightPaddleY = Math.min(rightPaddleBottom, rightPaddleY + paddleSpeed);
+      }
     }
     // Sauvegarde la position précédente de la balle
     const prevBallX = ballX;
@@ -548,42 +766,65 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     // Left paddle collision (continuous)
     if (
       ballSpeedX < 0 && // Only check collision if ball is moving left
-      prevBallX >= leftPaddleX && // 15 = largeur paddle
-      ballX < leftPaddleX &&
-      // Vérifie si la balle croise la zone verticale de la raquette
-      ballY + ballSize > leftPaddleY &&
-      ballY < leftPaddleY + paddleHeight
+      prevBallX >= leftPaddleX && 
+      ballX < leftPaddleX
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      // Ne pas appliquer de décalage à la position pour la détection de collision
+      const effectiveLeftPaddleY = leftPaddleY;
+      
+      // Use the correct height based on power-up state
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left'
+        ? giantPaddleHeight 
+        : normalPaddleHeight;
+      
+      if (
+        ballY + ballSize > effectiveLeftPaddleY &&
+        ballY < effectiveLeftPaddleY + currentLeftPaddleHeight
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
-      const hitPosition = (ballY + ballSize/2 - (leftPaddleY + paddleHeight/2)) / (paddleHeight/2);
-      ballSpeedY = newSpeed * hitPosition * 0.8;
+        ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
+        // Use the middle of the current paddle height for hit calculation
+        const hitPosition = (ballY + ballSize/2 - (effectiveLeftPaddleY + currentLeftPaddleHeight/2)) / (currentLeftPaddleHeight/2);
+        ballSpeedY = newSpeed * hitPosition * 0.8;
 
-      // Replace la balle juste à côté de la raquette
-      ballX = leftPaddleX + 15;
+        // Replace la balle juste à côté de la raquette
+        ballX = leftPaddleX + 15;
+      }
     }
 
     // Right paddle collision (continuous)
     if (
       ballSpeedX > 0 && // Only check collision if ball is moving right
-      prevBallX + ballSize <= rightPaddleX && // Avant la raquette
-      ballX + ballSize > rightPaddleX &&
-      ballY + ballSize > rightPaddleY &&
-      ballY < rightPaddleY + paddleHeight
+      prevBallX + ballSize <= rightPaddleX && 
+      ballX + ballSize > rightPaddleX
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      // Ne pas appliquer de décalage à la position pour la détection de collision
+      const effectiveRightPaddleY = rightPaddleY;
+      
+      // Use the correct height based on power-up state
+      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right'
+        ? giantPaddleHeight 
+        : normalPaddleHeight;
+      
+      if (
+        ballY + ballSize > effectiveRightPaddleY &&
+        ballY < effectiveRightPaddleY + currentRightPaddleHeight
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedX = -Math.abs(ballSpeedX) * speedRatio;
-      const hitPosition = (ballY + ballSize/2 - (rightPaddleY + paddleHeight/2)) / (paddleHeight/2);
-      ballSpeedY = newSpeed * hitPosition * 0.8;
+        ballSpeedX = -Math.abs(ballSpeedX) * speedRatio;
+        // Use the middle of the current paddle height for hit calculation
+        const hitPosition = (ballY + ballSize/2 - (effectiveRightPaddleY + currentRightPaddleHeight/2)) / (currentRightPaddleHeight/2);
+        ballSpeedY = newSpeed * hitPosition * 0.8;
 
-      // Replace la balle juste à côté de la raquette
-      ballX = rightPaddleX - ballSize;
+        // Replace la balle juste à côté de la raquette
+        ballX = rightPaddleX - ballSize;
+      }
     }
     
     // Ball out of bounds - update score and reset
@@ -631,7 +872,80 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
       ballSpeedY = (Math.random() * 2 - 1) * initialSpeed * 0.3;
     }
     
-    // Update pending values for DOM operations
+    // Power-up logic (only if enabled)
+    if (powerupsEnabled && gameContainer) {
+      const now = performance.now();
+      
+      // Generate a new collectible if none exists and cooldown has passed
+      if (!powerupActive && !collectibleElement && now - lastPowerupTime > powerupCooldown) {
+        // Very high chance to spawn a power-up collectible (90% chance per frame)
+        if (Math.random() < 0.9) { // Increased from 1% to 90% chance
+          // Create collectible at random position
+          collectibleElement = document.createElement('div');
+          collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
+          collectibleElement.style.width = '25px';
+          collectibleElement.style.height = '25px';
+          collectibleElement.style.backgroundColor = '#00ff00';
+          collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
+          collectibleElement.style.zIndex = '20'; // Valeur plus élevée que les autres éléments
+          collectibleElement.style.pointerEvents = 'none'; // Éviter d'interférer avec les contrôles
+          
+          // Random position within safe boundaries
+          collectibleX = 100 + Math.random() * (containerWidth - 200);
+          collectibleY = 100 + Math.random() * (containerHeight - 200);
+          
+          collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
+          gameContainer.appendChild(collectibleElement);
+          lastPowerupTime = now;
+        }
+      }
+      
+      // Check for collision between ball and collectible
+      if (collectibleElement) {
+        const ballRadius = ballSize / 2;
+        const collectibleRadius = 12.5; // Half of the 25px width
+        
+        const dx = (ballX + ballRadius) - (collectibleX + collectibleRadius);
+        const dy = (ballY + ballRadius) - (collectibleY + collectibleRadius);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < ballRadius + collectibleRadius) {
+          // Collision detected - activate power-up
+          powerupActive = true;
+          powerupAffectedPaddle = ballSpeedX > 0 ? 'left' : 'right';
+          
+          // Remove the collectible
+          if (collectibleElement && collectibleElement.parentNode && gameContainer) {
+            gameContainer.removeChild(collectibleElement);
+            collectibleElement = null;
+          }
+          
+          // Create power-up notification
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-4 py-2 rounded-md z-50';
+          notification.textContent = `${t('GiantPaddle')} (${powerupAffectedPaddle === 'left' ? t('Player') + ' 1' : t('Player') + ' 2'})`;
+          document.body.appendChild(notification);
+          
+          // Remove notification after 2 seconds
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 2000);
+          
+          // End power-up after duration
+          powerupTimer = window.setTimeout(() => {
+            powerupActive = false;
+            powerupAffectedPaddle = null;
+            powerupTimer = null;
+          }, powerupDuration);
+        }
+      }
+    } else if (collectibleElement && collectibleElement.parentNode && gameContainer) {
+      // Clean up collectible if power-ups are disabled
+      gameContainer.removeChild(collectibleElement);
+      collectibleElement = null;
+    }
+    
+    // IMPORTANT: Update pending values for DOM operations
     pendingLeftPaddleY = leftPaddleY;
     pendingRightPaddleY = rightPaddleY;
     pendingBallX = ballX;
@@ -643,10 +957,40 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
     // Apply all DOM updates in one batch to prevent layout thrashing
     if (leftPaddle && rightPaddle && ball)
     {
-      // Optimize for GPU acceleration and reduce jank
-      leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
-      rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+      // Basic transform for ball
       ball.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`;
+      
+      // Update paddle heights based on power-up state
+      if (powerupActive) {
+        if (powerupAffectedPaddle === 'left') {
+          leftPaddle.style.height = `${giantPaddleHeight}px`;
+          
+          // Simple direct positioning - allows the paddle to touch the bottom edge
+          // Use same position as physics update, which already limits it correctly
+          leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
+        } else {
+          leftPaddle.style.height = `${normalPaddleHeight}px`;
+          leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
+        }
+        
+        if (powerupAffectedPaddle === 'right') {
+          rightPaddle.style.height = `${giantPaddleHeight}px`;
+          
+          // Simple direct positioning - allows the paddle to touch the bottom edge
+          // Use same position as physics update, which already limits it correctly
+          rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+        } else {
+          rightPaddle.style.height = `${normalPaddleHeight}px`;
+          rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+        }
+      } else {
+        // Reset to normal size when power-up is not active
+        leftPaddle.style.height = `${normalPaddleHeight}px`;
+        leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
+        
+        rightPaddle.style.height = `${normalPaddleHeight}px`;
+        rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+      }
     }
   }
   
@@ -690,6 +1034,29 @@ function setupPaddleMovement(aiEnabled: boolean = false) {
   
   // Start the game loop
   animationFrameId = requestAnimationFrame(gameLoop);
+  
+  // Dans la fonction setupPaddleMovement(), après l'initialisation des variables
+  setTimeout(() => {
+    if (powerupsEnabled && gameContainer && !collectibleElement) {
+      // Force create a test collectible
+      collectibleElement = document.createElement('div');
+      collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
+      collectibleElement.style.width = '25px';
+      collectibleElement.style.height = '25px';
+      collectibleElement.style.backgroundColor = '#00ff00';
+      collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
+      collectibleElement.style.zIndex = '20'; // Valeur plus élevée que les autres éléments
+      collectibleElement.style.pointerEvents = 'none'; // Éviter d'interférer avec les contrôles
+      
+      // Position au centre pour être sûr qu'il est visible
+      collectibleX = containerWidth / 2;
+      collectibleY = containerHeight / 2;
+      
+      collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
+      gameContainer.appendChild(collectibleElement);
+      console.log('Test collectible created!');
+    }
+  }, 1000);
   
   return { cleanup, gameOverPromise };
 }

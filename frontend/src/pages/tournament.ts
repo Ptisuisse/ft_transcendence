@@ -275,18 +275,18 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
 
 function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   const bracketContainer = document.createElement('div');
-  bracketContainer.className = 'flex flex-col items-center bg-gray-900 bg-opacity-70 p-6 rounded-lg border border-purple-500 shadow-lg';
+  bracketContainer.className = 'flex flex-col items-center bg-gray-900 bg-opacity-70 p-6 rounded-lg border border-purple-500 shadow-lg w-full';
 
   // Structure de l'arbre du tournoi
   const bracket = document.createElement('div');
-  bracket.className = 'flex justify-center w-full';
+  bracket.className = 'w-full';
 
   // Structure de tournoi basée sur la configuration
   let rounds = [];
   
   if (config && config.playerCount === 4) {
     rounds = [
-      { matches: 2 }, // Supprimé le nom du round
+      { matches: 2 },
       { matches: 1 }
     ];
   } else {
@@ -299,7 +299,7 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
 
   // Générer les rounds
   const roundsContainer = document.createElement('div');
-  roundsContainer.className = 'flex gap-8 justify-between w-full';
+  roundsContainer.className = 'Parent p-5'; // Implementing Parent class here
 
   rounds.forEach((round, roundIndex) => {
     const roundColumn = document.createElement('div');
@@ -314,13 +314,13 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       const isMatchCompleted = config?.completedMatches?.[matchKey] === true;
       
       // Base class with conditional styling
-      match.className = 'border rounded p-3 bg-gray-800 w-48 transition-all';
+      match.className = 'border rounded p-3 bg-gray-800 transition-all';
+      // Make matches responsive
+      match.style.width = 'min(100%, 12rem)';
       
       if (isMatchCompleted) {
-        // Style pour un match déjà joué
         match.className += ' border-green-700 opacity-90';
       } else {
-        // Style normal pour un match à jouer
         match.className += ' border-cyan-700 hover:border-pink-500 cursor-pointer';
       }
       
@@ -363,14 +363,16 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
       
       // Joueurs du match - Simplifié pour n'afficher que les noms
       const player1Div = document.createElement('div');
-      player1Div.className = 'text-white font-semibold mb-1';
+      player1Div.className = 'text-white font-semibold mb-1 truncate';
       player1Div.textContent = player1Name;
       player1Div.id = `r${roundIndex}-m${i}-p1`;
+      player1Div.title = player1Name; // Add tooltip for truncated names
       
       const player2Div = document.createElement('div');
-      player2Div.className = 'text-white font-semibold';
+      player2Div.className = 'text-white font-semibold truncate';
       player2Div.textContent = player2Name;
       player2Div.id = `r${roundIndex}-m${i}-p2`;
+      player2Div.title = player2Name; // Add tooltip for truncated names
       
       match.appendChild(player1Div);
       match.appendChild(player2Div);
@@ -396,7 +398,7 @@ function createTournamentBracket(config?: TournamentConfig): HTMLElement {
   return bracketContainer;
 }
 
-// Ajoutez cette fonction utilitaire au début du fichier, après les imports
+// Corriger la fonction shuffleArray
 function shuffleArray<T>(array: T[]): T[] {
   // Création d'une copie pour ne pas modifier l'original
   const shuffled = [...array];
@@ -404,8 +406,7 @@ function shuffleArray<T>(array: T[]): T[] {
   // Algorithme de Fisher-Yates pour mélanger le tableau
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Échange des éléments
-  }
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];  }
   
   return shuffled;
 }
@@ -416,6 +417,7 @@ interface CurrentMatch {
   matchIndex: number;
   player1: TournamentPlayer;
   player2: TournamentPlayer;
+  source: string; // Ajout de cette propriété pour identifier la source du match
 }
 
 // Fonction pour démarrer un match de tournoi
@@ -425,25 +427,15 @@ function startTournamentMatch(roundIndex: number, matchIndex: number, player1: T
     roundIndex,
     matchIndex,
     player1,
-    player2
+    player2,
+    source: 'tournament' // Ajout d'une propriété source
   };
   
   // Sauvegarder le match en cours dans localStorage
   localStorage.setItem('currentTournamentMatch', JSON.stringify(currentMatch));
   
-  // Utiliser les paramètres par défaut pour le jeu de Pong
-  const defaultSettings = {
-    ballColor: '#FFFFFF',
-    leftPaddleColor: '#FF0000',
-    rightPaddleColor: '#00AAFF',
-    aiEnabled: false
-  };
-  
-  // Sauvegarder les paramètres pour le jeu
-  localStorage.setItem('pongSettings', JSON.stringify(defaultSettings));
-  
-  // Naviguer vers la page de jeu Pong
-  navigateTo('/pong/game');
+  // Naviguer vers le menu de personnalisation de Pong
+  navigateTo('/pong');
 }
 
 export function updateTournamentWithWinner(
@@ -528,29 +520,29 @@ export function updateTournamentWithWinner(
 
 function createWinnerCelebration(winner: TournamentPlayer): HTMLElement {
   const celebrationContainer = document.createElement('div');
-  celebrationContainer.className = 'flex flex-col items-center bg-gray-900 bg-opacity-70 p-12 rounded-lg border-4 border-gold shadow-2xl';
+  celebrationContainer.className = 'Parent flex-col items-center bg-gray-900 bg-opacity-70 p-6 md:p-12 rounded-lg border-4 border-gold shadow-2xl w-full max-w-3xl';
 
   // Add trophy icon
   const trophyIcon = document.createElement('div');
-  trophyIcon.className = 'text-6xl text-yellow-400 mb-4';
+  trophyIcon.className = 'text-4xl md:text-6xl text-yellow-400 mb-4';
   trophyIcon.innerHTML = '🏆';
   celebrationContainer.appendChild(trophyIcon);
 
   // Add congratulation title
   const congratsTitle = document.createElement('h2');
-  congratsTitle.className = 'text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-6';
+  congratsTitle.className = 'text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4 md:mb-6';
   congratsTitle.textContent = t('TitleTournament');
   celebrationContainer.appendChild(congratsTitle);
 
   // Winner name
   const winnerName = document.createElement('div');
-  winnerName.className = 'text-5xl font-extrabold text-white mb-8';
+  winnerName.className = 'text-3xl md:text-5xl font-extrabold text-white mb-6 md:mb-8';
   winnerName.textContent = winner.nickname;
   celebrationContainer.appendChild(winnerName);
 
   // Add celebratory message
   const celebMessage = document.createElement('p');
-  celebMessage.className = 'text-xl text-gray-300 mb-8 text-center max-w-md';
+  celebMessage.className = 'text-lg md:text-xl text-gray-300 mb-6 md:mb-8 text-center max-w-md';
   celebMessage.textContent = t('TournamentRules');
   celebrationContainer.appendChild(celebMessage);
 

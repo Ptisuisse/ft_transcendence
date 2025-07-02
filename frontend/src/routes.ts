@@ -7,6 +7,7 @@ import { PongMultiplayerPage, PongMultiplayerGamePage } from './pages/pong_multi
 import { LoginPage } from './pages/login.ts';
 import { TeamPage } from './pages/team.ts';
 import { translations } from './i18n.ts';
+import { gameState } from './gameState.ts';
 
 type PageRenderFunction = () => string | HTMLElement;
 
@@ -23,6 +24,30 @@ const routes: { [key: string]: PageRenderFunction | string } = {
 };
 
 export const navigateTo = (url: string) => {
+  // Always execute cleanup before navigation
+  gameState.executeCleanup();
+  
+  // Si on quitte le contexte d'un tournoi (ni page pong, ni page tournoi)
+  const isTournamentMatch = localStorage.getItem('currentTournamentMatch') !== null;
+  
+  if (isTournamentMatch && 
+      !url.startsWith('/pong') && 
+      !url.startsWith('/pong/game') && 
+      !url.startsWith('/pong/tournament')) {
+    
+    // Nettoyage des données de match et arrêt du jeu
+    const matchAborted = { aborted: true };
+    localStorage.setItem('matchAborted', JSON.stringify(matchAborted));
+    
+    // On retire le match du tournoi après un court délai
+    setTimeout(() => {
+      localStorage.removeItem('currentTournamentMatch');
+      localStorage.removeItem('matchAborted');
+    }, 100);
+    
+    console.log('Match de tournoi annulé - navigation hors contexte');
+  }
+  
   history.pushState(null, "", url);
   renderPage();
 };

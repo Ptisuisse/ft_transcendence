@@ -51,7 +51,14 @@ export const translations = {
     CreateTournament: "Créer le tournoi",
     CancelTournament: "Annuler",
     JoinTournament: "Rejoindre le tournoi",
-    TournamentList: "Liste des tournois"
+    TournamentList: "Liste des tournois",
+    TournamentMatch: "Match de Tournoi",
+    CancelMatch: "Annuler le match",
+    // Power-ups
+    EnablePowerups: "Activer les power-ups",
+    NormalGame: "Jeu normal",
+    PowerupsGame: "Avec power-ups",
+    GiantPaddle: "Raquette géante !",
   },
   en: {
     // Navbar link
@@ -105,7 +112,14 @@ export const translations = {
     CreateTournament: "Create Tournament",
     CancelTournament: "Cancel",
     JoinTournament: "Join Tournament",
-    TournamentList: "Tournament List"
+    TournamentList: "Tournament List",
+    TournamentMatch: "Tournament Match",
+    CancelMatch: "Cancel Match",
+    // Power-ups
+    EnablePowerups: "Enable Power-ups",
+    NormalGame: "Normal Game",
+    PowerupsGame: "With Power-ups",
+    GiantPaddle: "Giant Paddle!",
   },
   es: {
     // Navbar link
@@ -159,6 +173,13 @@ export const translations = {
     CreateTournament: "Crear torneo",
     CancelTournament: "Cancelar",
     JoinTournament: "Unirse al torneo",
-    TournamentList: "Lista de torneos"
+    TournamentList: "Lista de torneos",
+    TournamentMatch: "Partido de Torneo",
+    CancelMatch: "Cancelar partido",
+    // Power-ups
+    EnablePowerups: "Activar potenciadores",
+    NormalGame: "Juego normal",
+    PowerupsGame: "Con potenciadores",
+    GiantPaddle: "¡Paleta gigante!",
   }
 };

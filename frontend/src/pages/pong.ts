@@ -336,7 +336,7 @@ export function PongGamePage(): HTMLElement {
       if (!isTournamentMatch) {
         // Si ce n'est pas un match valide, nettoyer le localStorage
         localStorage.removeItem('currentTournamentMatch');
-        console.log('Match de tournoi invalide détecté et nettoyé');
+        //console.log('Match de tournoi invalide détecté et nettoyé');
       }
     } catch (e) {
       // En cas d'erreur de parsing, nettoyer
@@ -389,9 +389,7 @@ export function PongGamePage(): HTMLElement {
         cleanup();
       }
     };
-    
     // Utiliser un MutationObserver pour surveiller les changements du body
-    // qui pourraient indiquer un changement de page
     const observer = new MutationObserver((mutations) => {
       mutations.forEach(() => {
         // Si nous sommes plus sur la page du jeu, nettoyer
@@ -402,24 +400,89 @@ export function PongGamePage(): HTMLElement {
         }
       });
     });
-    
     observer.observe(document.body, {
       childList: true,
       subtree: true
     });
-    
-    // Ajouter à l'élément pour le nettoyage ultérieur
     (element as any).__navigationObserver = observer;
-    
-    // Ajouter l'écouteur d'événement beforeunload
     const handleBeforeUnload = () => {
       gameState.executeCleanup();
     };
-    
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Store a reference to remove it later if needed
     (element as any).__cleanupHandler = handleBeforeUnload;
+
+    // Affichage du message de victoire
+    result.gameOverPromise.then((winner) => {
+      let winnerText = '';
+      // === Gestion du tournoi ===
+      let winnerName = '';
+      if (isTournamentMatch) {
+        try {
+          const matchData = localStorage.getItem('currentTournamentMatch');
+          if (matchData) {
+            const currentMatch = JSON.parse(matchData);
+            if (winner === 'left') {
+              winnerName = currentMatch.player1.nickname;
+            } else if (winner === 'right') {
+              winnerName = currentMatch.player2.nickname;
+            }
+          }
+        } catch (e) {
+          console.error('Erreur lors de la récupération du nom du gagnant du tournoi:', e);
+        }
+      }
+      if (isTournamentMatch && winnerName) {
+        winnerText = `${winnerName} ${t('Wins')}`;
+      } else {
+        if (winner === 'left') {
+          winnerText = settings.aiEnabled ? t('YouWin') : t('Player') + ' 1 ' + t('Wins');
+        } else if (winner === 'right') {
+          winnerText = settings.aiEnabled ? t('IAWins') : t('Player') + ' 2 ' + t('Wins');
+        } else {
+          winnerText = t('GameOver');
+        }
+      }
+      const gameOverMessage = document.getElementById('game-over-message');
+      const gameOverText = document.getElementById('winner-text');
+      if (gameOverMessage && gameOverText) {
+        gameOverText.textContent = winnerText;
+        gameOverMessage.classList.remove('hidden');
+      }
+
+      // === Gestion du tournoi ===
+      if (isTournamentMatch) {
+        try {
+          const matchData = localStorage.getItem('currentTournamentMatch');
+          const tournamentConfigRaw = localStorage.getItem('tournamentConfig');
+          if (matchData && tournamentConfigRaw) {
+            const currentMatch = JSON.parse(matchData);
+            const tournamentConfig = JSON.parse(tournamentConfigRaw);
+            let winnerPlayer = null;
+            if (winner === 'left') {
+              winnerPlayer = currentMatch.player1;
+            } else if (winner === 'right') {
+              winnerPlayer = currentMatch.player2;
+            }
+            if (winnerPlayer) {
+              import('../pages/tournament').then(module => {
+                module.updateTournamentWithWinner(
+                  tournamentConfig,
+                  currentMatch.roundIndex,
+                  currentMatch.matchIndex,
+                  winnerPlayer
+                );
+                localStorage.removeItem('currentTournamentMatch');
+                setTimeout(() => {
+                  navigateTo('/pong/tournament');
+                }, 2000);
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Erreur lors de la mise à jour du tournoi:', e);
+        }
+      }
+    });
   }, 100);
   
   // Ne retourner que l'élément HTML, pas de fonction de nettoyage

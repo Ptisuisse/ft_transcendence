@@ -216,13 +216,13 @@ export function HomePage(): HTMLElement {
 
 	const cardDataList: CardData[] = [
 		{
-			imageUrl: '/pong.jpg',
+			imageUrl: '/image_pong_classic.png',
 			titleText: translations[getCurrentLang()].TitlePongGame,
 			descriptionText: translations[getCurrentLang()].PongGame,
 			linkHref: '/pong'
 		},
 		{
-			imageUrl: '/pong.jpg',
+			imageUrl: '/image_pong_tournament.png',
 			titleText: translations[getCurrentLang()].TitleMultiPong,
 			descriptionText: translations[getCurrentLang()].MultiPong,
 			linkHref: '/pong/tournament'

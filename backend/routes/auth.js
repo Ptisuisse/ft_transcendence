@@ -3,15 +3,19 @@
 const { OAuth2Client } = require('google-auth-library');
 const jwtLib = require('jsonwebtoken');
 const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET;
 const client = new OAuth2Client(CLIENT_ID);
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 // Stockage temporaire des codes 2FA (en mémoire, à remplacer par Redis/DB en prod)
 const twoFACodes = {};
 
 module.exports = async function (fastify, opts) {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined in the environment variables');
+  }
   fastify.post('/auth/google', async function (request, reply) {
     const { jwt } = request.body;
 
@@ -43,7 +47,7 @@ module.exports = async function (fastify, opts) {
       return reply.code(400).send({ ok: false, message: 'Email requis' });
     }
     // Génère un code à 6 chiffres
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1000000).toString();
     // Stocke le code temporairement (5 min)
     twoFACodes[email] = { code, expires: Date.now() + 5 * 60 * 1000 };
 
@@ -85,12 +89,4 @@ module.exports = async function (fastify, opts) {
     delete twoFACodes[email];
     return { ok: true, message: 'Code validé' };
   });
-}
-
-//Parse the JWT token from Google
-function parseJwt(token) {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  const jsonPayload = Buffer.from(base64, 'base64').toString('utf-8');
-  return JSON.parse(jsonPayload);
 }

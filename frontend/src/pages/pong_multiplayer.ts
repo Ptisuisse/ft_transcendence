@@ -16,7 +16,7 @@ interface PongMultiplayerSettings {
 // Page du menu
 export function PongMultiplayerMenuPage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'Parent p-5';
+  element.className = 'Parent p-5 flex flex-col items-center';
   
   // Menu container
   const menuModal = document.createElement('div');
@@ -199,7 +199,7 @@ export function PongMultiplayerMenuPage(): HTMLElement {
 // Page du jeu
 export function PongMultiplayerGamePage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'flex flex-col justify-center items-center h-screen';
+  element.className = 'Parent p-5';
   
   // Charger les paramètres
   let settings: PongMultiplayerSettings = {
@@ -222,7 +222,7 @@ export function PongMultiplayerGamePage(): HTMLElement {
   
   // Conteneur de jeu
   const gameWrapper = document.createElement('div');
-  gameWrapper.className = 'relative w-[800px]';
+  gameWrapper.className = 'relative w-full max-w-[800px] mx-auto';
   
   // Tableau de score
   const scoreBoard = createScoreBoard(
@@ -311,11 +311,11 @@ function createScoreBoard(
   bottomColor = '#FFFF00'
 ): HTMLDivElement {
   const scoreBoard = document.createElement('div');
-  scoreBoard.className = 'flex flex-wrap justify-center items-center w-[800px] mb-4 text-3xl font-bold';
+  scoreBoard.className = 'flex flex-wrap justify-center items-center w-full max-w-[800px] mb-2 sm:mb-4 text-2xl sm:text-3xl font-bold';
   
   // Group each player label with their score
   const leftGroup = document.createElement('div');
-  leftGroup.className = 'flex items-center mx-4';
+  leftGroup.className = 'flex items-center mx-2 sm:mx-4';
   const leftLabel = document.createElement('div');
   leftLabel.className = 'text-white text-sm mr-1';
   leftLabel.textContent = 'P1:';
@@ -327,7 +327,7 @@ function createScoreBoard(
   leftGroup.appendChild(leftScore);
   
   const rightGroup = document.createElement('div');
-  rightGroup.className = 'flex items-center mx-4';
+  rightGroup.className = 'flex items-center mx-2 sm:mx-4';
   const rightLabel = document.createElement('div');
   rightLabel.className = 'text-white text-sm mr-1';
   rightLabel.textContent = 'P2:';
@@ -339,7 +339,7 @@ function createScoreBoard(
   rightGroup.appendChild(rightScore);
   
   const topGroup = document.createElement('div');
-  topGroup.className = 'flex items-center mx-4';
+  topGroup.className = 'flex items-center mx-2 sm:mx-4';
   const topLabel = document.createElement('div');
   topLabel.className = 'text-white text-sm mr-1';
   topLabel.textContent = 'P3:';
@@ -351,7 +351,7 @@ function createScoreBoard(
   topGroup.appendChild(topScore);
   
   const bottomGroup = document.createElement('div');
-  bottomGroup.className = 'flex items-center mx-4';
+  bottomGroup.className = 'flex items-center mx-2 sm:mx-4';
   const bottomLabel = document.createElement('div');
   bottomLabel.className = 'text-white text-sm mr-1';
   bottomLabel.textContent = 'P4:';
@@ -377,47 +377,47 @@ function createGameContainer(
   bottomColor = '#FFFF00'
 ): HTMLDivElement {
   const border = document.createElement('div');
-  border.className = 'border-2 border-solid border-green-500 w-[800px] h-[600px] bg-gray-900 relative overflow-hidden';
+  border.className = 'border-2 border-solid border-green-500 w-full max-w-[800px] aspect-[4/3] bg-gray-900 relative overflow-hidden';
   border.id = 'game-container';
   
   // Left paddle (vertical)
   const leftPaddle = document.createElement('div');
-  leftPaddle.className = 'absolute left-[10px] top-0 w-[15px] h-[100px]';
+  leftPaddle.className = 'absolute left-[1.25%] top-0 w-[1.875%] h-[16.67%]';
   leftPaddle.id = 'left-paddle';
   leftPaddle.style.backgroundColor = leftColor;
   leftPaddle.style.willChange = 'transform';
-  leftPaddle.style.transform = 'translate3d(0, 250px, 0)';
+  // Initial position will be calculated in the game loop
   
   // Right paddle (vertical)
   const rightPaddle = document.createElement('div');
-  rightPaddle.className = 'absolute right-[10px] top-0 w-[15px] h-[100px]';
+  rightPaddle.className = 'absolute right-[1.25%] top-0 w-[1.875%] h-[16.67%]';
   rightPaddle.id = 'right-paddle';
   rightPaddle.style.backgroundColor = rightColor;
   rightPaddle.style.willChange = 'transform';
-  rightPaddle.style.transform = 'translate3d(0, 250px, 0)';
+  // Initial position will be calculated in the game loop
 
   // Top paddle (horizontal)
   const topPaddle = document.createElement('div');
-  topPaddle.className = 'absolute top-[10px] left-0 h-[15px] w-[100px]';
+  topPaddle.className = 'absolute top-[1.67%] left-0 h-[2.5%] w-[16.67%]';
   topPaddle.id = 'top-paddle';
   topPaddle.style.backgroundColor = topColor;
   topPaddle.style.willChange = 'transform';
-  topPaddle.style.transform = 'translate3d(350px, 0, 0)';
+  // Initial position will be calculated in the game loop
 
   // Bottom paddle (horizontal)
   const bottomPaddle = document.createElement('div');
-  bottomPaddle.className = 'absolute bottom-[10px] left-0 h-[15px] w-[100px]';
+  bottomPaddle.className = 'absolute bottom-[1.67%] left-0 h-[2.5%] w-[16.67%]';
   bottomPaddle.id = 'bottom-paddle';
   bottomPaddle.style.backgroundColor = bottomColor;
   bottomPaddle.style.willChange = 'transform';
-  bottomPaddle.style.transform = 'translate3d(350px, 0, 0)';
+  // Initial position will be calculated in the game loop
 
   // Ball
   const ball = document.createElement('div');
-  ball.className = 'absolute w-[20px] h-[20px] rounded-full';
+  ball.className = 'absolute w-[2.5%] h-[3.33%] rounded-full';
   ball.id = 'ball';
   ball.style.willChange = 'transform';
-  ball.style.transform = 'translate3d(390px, 290px, 0)';
+  // Initial position will be calculated in the game loop
 
   border.appendChild(leftPaddle);
   border.appendChild(rightPaddle);
@@ -429,6 +429,7 @@ function createGameContainer(
 }
 
 function setupPaddleMovement(powerupsEnabled: boolean = false) {
+  // DOM elements
   const leftPaddle = document.getElementById('left-paddle');
   const rightPaddle = document.getElementById('right-paddle');
   const topPaddle = document.getElementById('top-paddle');
@@ -451,7 +452,7 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
   let rightScore = 0;
   let topScore = 0;
   let bottomScore = 0;
-  const maxScore = 5; // Score maximum pour gagner
+  const maxScore = 5;
   let gameOver = false;
   let gameOverResolve: (winner: string) => void;
   
@@ -463,13 +464,65 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     gameOverResolve = resolve;
   });
   
-  // Cache initial dimensions to avoid layout thrashing
-  const containerWidth = gameContainer.clientWidth;
-  const containerHeight = gameContainer.clientHeight;
-  const vPaddleHeight = 100; // Vertical paddles (left and right)
-  const vPaddleWidth = 15;  // Largeur des paddles verticales
-  const hPaddleWidth = 100;  // Horizontal paddles (top and bottom)
-  const hPaddleHeight = 15;  // Hauteur des paddles horizontales
+  // Keyboard state tracking
+  const keys = {
+    w: false,
+    s: false,
+    arrowup: false,
+    arrowdown: false,
+    o: false,
+    p: false,
+    c: false,
+    v: false
+  };
+  
+  // Setup key handlers
+  const keyDownHandler = (event: KeyboardEvent) => {
+    // Prevent default for game keys to avoid page scrolling
+    const key = event.key.toLowerCase();
+    if (['w', 's', 'arrowup', 'arrowdown', 'o', 'p', 'c', 'v'].includes(key)) {
+      event.preventDefault();
+      (keys as any)[key] = true;
+    }
+  };
+  
+  const keyUpHandler = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    if (['w', 's', 'arrowup', 'arrowdown', 'o', 'p', 'c', 'v'].includes(key)) {
+      (keys as any)[key] = false;
+    }
+  };
+  
+  document.addEventListener('keydown', keyDownHandler, { passive: false });
+  document.addEventListener('keyup', keyUpHandler, { passive: true });
+  
+  // Variables for responsive handling
+  let containerWidth = gameContainer.clientWidth;
+  let containerHeight = gameContainer.clientHeight;
+  
+  // Paddle positions and dimensions
+  const leftPaddleX = containerWidth * 0.0125;  // 1.25% from left edge
+  const rightPaddleX = containerWidth * 0.9688; // 96.88% from left (or 1.25% from right)
+  const topPaddleY = containerHeight * 0.0167;  // 1.67% from top edge
+  const bottomPaddleY = containerHeight * 0.9583; // 95.83% from top (or 1.67% from bottom)
+  
+  // Paddle dimensions
+  let vPaddleHeight = containerHeight * 0.1667; // ~16.67% of container height
+  let vPaddleWidth = containerWidth * 0.01875;  // ~1.875% of container width
+  let hPaddleWidth = containerWidth * 0.1667;   // ~16.67% of container width
+  let hPaddleHeight = containerHeight * 0.025;  // ~2.5% of container height
+  
+  // Giant paddle dimensions (power-up)
+  let normalVPaddleHeight = vPaddleHeight;
+  let giantVPaddleHeight = vPaddleHeight * 2;
+  let normalHPaddleWidth = hPaddleWidth;
+  let giantHPaddleWidth = hPaddleWidth * 2;
+  
+  // Ajout des définitions des pourcentages manquants
+  const normalVPaddleHeightPercent = 0.1667; // 16.67% of container height
+  const giantVPaddleHeightPercent = 0.3334;  // 33.34% (double) of container height
+  const normalHPaddleWidthPercent = 0.1667;  // 16.67% of container width
+  const giantHPaddleWidthPercent = 0.3334;   // 33.34% (double) of container width
   
   // Position initiale des paddles
   let leftPaddleY = (containerHeight - vPaddleHeight) / 2;
@@ -477,60 +530,140 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
   let topPaddleX = (containerWidth - hPaddleWidth) / 2;
   let bottomPaddleX = (containerWidth - hPaddleWidth) / 2;
   
-  const paddleSpeed = 5;
+  // Make paddleSpeed relative to container size
+  let paddleSpeed = containerWidth * 0.00625; // 0.625% of container width
   
   // Ball properties
-  let ballX = containerWidth / 2 - 10;
-  let ballY = containerHeight / 2 - 10;
-  let initialSpeed = 4;
+  let ballSize = Math.min(containerWidth * 0.025, containerHeight * 0.0333); // ~2.5% of container width
+  let ballX = containerWidth / 2 - ballSize / 2;
+  let ballY = containerHeight / 2 - ballSize / 2;
+  let initialSpeed = containerWidth * 0.005; // 0.5% of container width
   let ballSpeedX = initialSpeed;
   let ballSpeedY = initialSpeed * 0.3;
-  const ballSize = 20;
-  const speedIncrement = 0.5;
-  let maxSpeed = 10;
+  const speedIncrement = initialSpeed * 0.125; // 12.5% of initial speed
+  let maxSpeed = initialSpeed * 2.5; // 250% of initial speed
   
-  // Track pressed keys with state
-  const keys = {
-    // Player 1 (Left)
-    w: false,
-    s: false,
-    
-    // Player 2 (Right)
-    arrowup: false,
-    arrowdown: false,
-    
-    // Player 3 (Top)
-    o: false,
-    p: false,
-    
-    // Player 4 (Bottom)
-    c: false,
-    v: false
-  };
+  // DOM update cache to reduce layout thrashing
+  let pendingLeftPaddleY = leftPaddleY;
+  let pendingRightPaddleY = rightPaddleY;
+  let pendingTopPaddleX = topPaddleX;
+  let pendingBottomPaddleX = bottomPaddleX;
+  let pendingBallX = ballX;
+  let pendingBallY = ballY;
   
-  // Optimize key event handlers
-  const keyDownHandler = (event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-    if (key in keys) {
-      keys[key as keyof typeof keys] = true;
-      event.preventDefault();
+  // Game timing variables
+  let lastTime = performance.now();
+  const fixedTimeStep = 1000 / 60;  // 60 FPS
+  let accumulator = 0;
+  let animationFrameId = 0;
+  
+  // Power-up state
+  let powerupActive = false;
+  let powerupAffectedPaddle: 'left' | 'right' | 'top' | 'bottom' | null = null;
+  let powerupTimer: number | null = null;
+  let powerupDuration = 5000; // 5 seconds
+  let lastPowerupTime = 0;
+  let powerupCooldown = 500; // 0.5 seconds
+  
+  // Collectible state
+  let collectibleElement: HTMLDivElement | null = null;
+  let collectibleX = 0;
+  let collectibleY = 0;
+  
+  // Resize observer to handle responsive updates
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.target === gameContainer) {
+        // Store old dimensions for ratio calculation
+        const oldWidth = containerWidth;
+        const oldHeight = containerHeight;
+        
+        // Update container dimensions
+        containerWidth = entry.contentRect.width;
+        containerHeight = entry.contentRect.height;
+        
+        // Calculate ratios for scaling
+        const widthRatio = containerWidth / oldWidth;
+        const heightRatio = containerHeight / oldHeight;
+        
+        // Update dimensions
+        vPaddleHeight = containerHeight * 0.1667;
+        vPaddleWidth = containerWidth * 0.01875;
+        hPaddleWidth = containerWidth * 0.1667;
+        hPaddleHeight = containerHeight * 0.025;
+        ballSize = Math.min(containerWidth * 0.025, containerHeight * 0.0333);
+        
+        // Update positions proportionally
+        leftPaddleY *= heightRatio;
+        rightPaddleY *= heightRatio;
+        topPaddleX *= widthRatio;
+        bottomPaddleX *= widthRatio;
+        ballX *= widthRatio;
+        ballY *= heightRatio;
+        
+        // Update speeds
+        paddleSpeed = containerWidth * 0.00625;
+        initialSpeed = containerWidth * 0.005;
+        ballSpeedX *= widthRatio;
+        ballSpeedY *= heightRatio;
+        maxSpeed = initialSpeed * 2.5;
+        
+        // Apply updates to DOM elements
+        applyChanges();
+      }
     }
-  };
+  });
   
-  const keyUpHandler = (event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-    if (key in keys) {
-      keys[key as keyof typeof keys] = false;
+  // Start observing the game container
+  resizeObserver.observe(gameContainer);
+  
+  // Apply DOM updates with proper size based on power-up state and container dimensions
+  function applyChanges() {
+    if (leftPaddle && rightPaddle && topPaddle && bottomPaddle && ball) {
+      // Update ball position and size
+      ball.style.width = `${ballSize}px`;
+      ball.style.height = `${ballSize}px`;
+      ball.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`;
+      
+      // Apply left paddle height and position based on power-up state
+      if (powerupActive && powerupAffectedPaddle === 'left') {
+        leftPaddle.style.height = `${giantVPaddleHeight}px`;
+      } else {
+        leftPaddle.style.height = `${normalVPaddleHeight}px`;
+      }
+      leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
+      
+      // Apply right paddle height and position
+      if (powerupActive && powerupAffectedPaddle === 'right') {
+        rightPaddle.style.height = `${giantVPaddleHeight}px`;
+      } else {
+        rightPaddle.style.height = `${normalVPaddleHeight}px`;
+      }
+      rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+      
+      // Apply top paddle width and position
+      if (powerupActive && powerupAffectedPaddle === 'top') {
+        topPaddle.style.width = `${giantHPaddleWidth}px`;
+      } else {
+        topPaddle.style.width = `${normalHPaddleWidth}px`;
+      }
+      topPaddle.style.transform = `translate3d(${pendingTopPaddleX}px, 0, 0)`;
+      
+      // Apply bottom paddle width and position
+      if (powerupActive && powerupAffectedPaddle === 'bottom') {
+        bottomPaddle.style.width = `${giantHPaddleWidth}px`;
+      } else {
+        bottomPaddle.style.width = `${normalHPaddleWidth}px`;
+      }
+      bottomPaddle.style.transform = `translate3d(${pendingBottomPaddleX}px, 0, 0)`;
     }
-  };
-  
-  document.addEventListener('keydown', keyDownHandler, { passive: false });
-  document.addEventListener('keyup', keyUpHandler, { passive: true });
+  }
   
   // Clean up function
   const cleanup = () => {
     document.removeEventListener('keydown', keyDownHandler);
     document.removeEventListener('keyup', keyUpHandler);
+    resizeObserver.disconnect(); // Important: disconnect the resize observer
     cancelAnimationFrame(animationFrameId);
     gameOver = true;
     
@@ -546,105 +679,130 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     }
   };
   
-  // Optimized physics settings
-  const fixedTimeStep = 1000 / 60;
-  let lastTime = 0;
-  let accumulator = 0;
-  let animationFrameId = 0;
-  
-  // Précalculer des valeurs utilisées fréquemment
-  const leftPaddleX = 10;
-  const rightPaddleX = containerWidth - vPaddleWidth - 10;
-  const topPaddleY = 10;
-  const bottomPaddleY = containerHeight - hPaddleHeight - 10;
-  
-  // Optimization: Create DOM operation buffer
-  let pendingLeftPaddleY = leftPaddleY;
-  let pendingRightPaddleY = rightPaddleY;
-  let pendingTopPaddleX = topPaddleX;
-  let pendingBottomPaddleX = bottomPaddleX;
-  let pendingBallX = ballX;
-  let pendingBallY = ballY;
-  
-  // Define paddle dimensions for normal and power-up states
-  const normalVPaddleHeight = vPaddleHeight; // 100px
-  const giantVPaddleHeight = vPaddleHeight * 2; // 200px
-  const normalHPaddleWidth = hPaddleWidth; // 100px
-  const giantHPaddleWidth = hPaddleWidth * 2; // 200px
-  
-  // Power-up state
-  let powerupActive = false;
-  let powerupAffectedPaddle: 'left' | 'right' | 'top' | 'bottom' | null = null;
-  let powerupTimer: number | null = null;
-  let powerupDuration = 5000; // 5 seconds
-  let lastPowerupTime = 0;
-  let powerupCooldown = 10000; // 10 seconds between power-ups
-  
-  // Collectible state
-  let collectibleElement: HTMLDivElement | null = null;
-  let collectibleX = 0;
-  let collectibleY = 0;
-  
   function updatePhysics() {
     // Move paddles with keyboard input - use current paddle dimensions
     
+    // Use percentage-based calculations for all paddles
     // Left paddle (Player 1)
     if (keys.w) leftPaddleY = Math.max(0, leftPaddleY - paddleSpeed);
     if (keys.s) {
-      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
-        ? giantVPaddleHeight 
-        : normalVPaddleHeight;
+      const currentLeftPaddleHeightPercent = powerupActive && powerupAffectedPaddle === 'left' 
+        ? giantVPaddleHeightPercent 
+        : normalVPaddleHeightPercent;
+      const currentLeftPaddleHeight = containerHeight * currentLeftPaddleHeightPercent;
       leftPaddleY = Math.min(containerHeight - currentLeftPaddleHeight, leftPaddleY + paddleSpeed);
     }
     
     // Right paddle (Player 2)
     if (keys.arrowup) rightPaddleY = Math.max(0, rightPaddleY - paddleSpeed);
     if (keys.arrowdown) {
-      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
-        ? giantVPaddleHeight 
-        : normalVPaddleHeight;
+      const currentRightPaddleHeightPercent = powerupActive && powerupAffectedPaddle === 'right' 
+        ? giantVPaddleHeightPercent 
+        : normalVPaddleHeightPercent;
+      const currentRightPaddleHeight = containerHeight * currentRightPaddleHeightPercent;
       rightPaddleY = Math.min(containerHeight - currentRightPaddleHeight, rightPaddleY + paddleSpeed);
     }
     
     // Top paddle (Player 3)
     if (keys.o) topPaddleX = Math.max(0, topPaddleX - paddleSpeed);
     if (keys.p) {
-      const currentTopPaddleWidth = powerupActive && powerupAffectedPaddle === 'top' 
-        ? giantHPaddleWidth 
-        : normalHPaddleWidth;
+      const currentTopPaddleWidthPercent = powerupActive && powerupAffectedPaddle === 'top' 
+        ? giantHPaddleWidthPercent 
+        : normalHPaddleWidthPercent;
+      const currentTopPaddleWidth = containerWidth * currentTopPaddleWidthPercent;
       topPaddleX = Math.min(containerWidth - currentTopPaddleWidth, topPaddleX + paddleSpeed);
     }
     
     // Bottom paddle (Player 4)
     if (keys.c) bottomPaddleX = Math.max(0, bottomPaddleX - paddleSpeed);
     if (keys.v) {
-      const currentBottomPaddleWidth = powerupActive && powerupAffectedPaddle === 'bottom' 
-        ? giantHPaddleWidth 
-        : normalHPaddleWidth;
+      const currentBottomPaddleWidthPercent = powerupActive && powerupAffectedPaddle === 'bottom' 
+        ? giantHPaddleWidthPercent 
+        : normalHPaddleWidthPercent;
+      const currentBottomPaddleWidth = containerWidth * currentBottomPaddleWidthPercent;
       bottomPaddleX = Math.min(containerWidth - currentBottomPaddleWidth, bottomPaddleX + paddleSpeed);
     }
     
-    // Sauvegarde la position précédente de la balle
-    const prevBallX = ballX;
-    const prevBallY = ballY;
-
     // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
     
+    // Collisions with walls
+    if (ballY < 0) {
+      ballY = 0;
+      ballSpeedY = Math.abs(ballSpeedY);
+    } else if (ballY + ballSize > containerHeight) {
+      ballY = containerHeight - ballSize;
+      ballSpeedY = -Math.abs(ballSpeedY);
+    }
+
+    if (ballX < 0) {
+      // La balle est sortie à gauche
+      if (lastPlayerTouched && lastPlayerTouched !== 'left') {
+        // Attribuer un point au dernier joueur qui a touché la balle (sauf le joueur de gauche)
+        scorePoint(lastPlayerTouched);
+      }
+      resetBall();
+    } else if (ballX + ballSize > containerWidth) {
+      // La balle est sortie à droite
+      if (lastPlayerTouched && lastPlayerTouched !== 'right') {
+        // Attribuer un point au dernier joueur qui a touché la balle (sauf le joueur de droite)
+        scorePoint(lastPlayerTouched);
+      }
+      resetBall();
+    }
+
+    function scorePoint(player: 'left' | 'right' | 'top' | 'bottom') {
+      switch (player) {
+        case 'left':
+          leftScore++;
+          leftScoreElement!.textContent = leftScore.toString();
+          if (leftScore >= maxScore) {
+            gameOver = true;
+            gameOverResolve('left');
+          }
+          break;
+        case 'right':
+          rightScore++;
+          rightScoreElement!.textContent = rightScore.toString();
+          if (rightScore >= maxScore) {
+            gameOver = true;
+            gameOverResolve('right');
+          }
+          break;
+        case 'top':
+          topScore++;
+          topScoreElement!.textContent = topScore.toString();
+          if (topScore >= maxScore) {
+            gameOver = true;
+            gameOverResolve('top');
+          }
+          break;
+        case 'bottom':
+          bottomScore++;
+          bottomScoreElement!.textContent = bottomScore.toString();
+          if (bottomScore >= maxScore) {
+            gameOver = true;
+            gameOverResolve('bottom');
+          }
+          break;
+      }
+    }
+    
+    // Handle collisions with paddles
+    // Adjust all collision detection to use the percentage-based dimensions
+
     // Left paddle collision - with power-up consideration
-    if (
-      ballSpeedX < 0 && 
-      prevBallX >= leftPaddleX + vPaddleWidth && 
-      ballX < leftPaddleX + vPaddleWidth
-    ) {
+    if (ballSpeedX < 0) { // Si la balle se déplace vers la gauche
       const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
         ? giantVPaddleHeight 
         : normalVPaddleHeight;
       
       if (
-        ballY + ballSize > leftPaddleY &&
-        ballY < leftPaddleY + currentLeftPaddleHeight
+        ballX <= leftPaddleX + vPaddleWidth && // Bord droit de la raquette
+        ballX + ballSize > leftPaddleX && // Bord gauche de la balle dépasse le bord gauche de la raquette
+        ballY + ballSize > leftPaddleY && // Bord inférieur de la balle est sous le haut de la raquette
+        ballY < leftPaddleY + currentLeftPaddleHeight // Bord supérieur de la balle est au-dessus du bas de la raquette
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
@@ -664,18 +822,16 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     }
 
     // Right paddle collision - with power-up consideration
-    if (
-      ballSpeedX > 0 && 
-      prevBallX + ballSize <= rightPaddleX && 
-      ballX + ballSize > rightPaddleX
-    ) {
+    if (ballSpeedX > 0) { // Si la balle se déplace vers la droite
       const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
         ? giantVPaddleHeight 
         : normalVPaddleHeight;
       
       if (
-        ballY + ballSize > rightPaddleY &&
-        ballY < rightPaddleY + currentRightPaddleHeight
+        ballX + ballSize >= rightPaddleX && // Bord droit de la balle dépasse le bord gauche de la raquette
+        ballX < rightPaddleX + vPaddleWidth && // Bord gauche de la balle est à gauche du bord droit de la raquette
+        ballY + ballSize > rightPaddleY && // Bord inférieur de la balle est sous le haut de la raquette
+        ballY < rightPaddleY + currentRightPaddleHeight // Bord supérieur de la balle est au-dessus du bas de la raquette
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
@@ -693,18 +849,16 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     }
     
     // Top paddle collision - with power-up consideration
-    if (
-      ballSpeedY < 0 && 
-      prevBallY >= topPaddleY + hPaddleHeight && 
-      ballY < topPaddleY + hPaddleHeight
-    ) {
+    if (ballSpeedY < 0) { // Si la balle se déplace vers le haut
       const currentTopPaddleWidth = powerupActive && powerupAffectedPaddle === 'top' 
         ? giantHPaddleWidth 
         : normalHPaddleWidth;
       
       if (
-        ballX + ballSize > topPaddleX &&
-        ballX < topPaddleX + currentTopPaddleWidth
+        ballY <= topPaddleY + hPaddleHeight && // Bord inférieur de la balle sous ou au niveau du bord inférieur de la raquette
+        ballY >= topPaddleY && // Bord supérieur de la balle au-dessus ou au niveau du bord supérieur de la raquette
+        ballX + ballSize > topPaddleX && // Bord droit de la balle dépasse le bord gauche de la raquette
+        ballX < topPaddleX + currentTopPaddleWidth // Bord gauche de la balle est à gauche du bord droit de la raquette
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
@@ -723,18 +877,16 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     }
 
     // Bottom paddle collision - with power-up consideration
-    if (
-      ballSpeedY > 0 && 
-      prevBallY + ballSize <= bottomPaddleY && 
-      ballY + ballSize > bottomPaddleY
-    ) {
+    if (ballSpeedY > 0) { // Si la balle se déplace vers le bas
       const currentBottomPaddleWidth = powerupActive && powerupAffectedPaddle === 'bottom' 
         ? giantHPaddleWidth 
         : normalHPaddleWidth;
       
       if (
-        ballX + ballSize > bottomPaddleX &&
-        ballX < bottomPaddleX + currentBottomPaddleWidth
+        ballY + ballSize >= bottomPaddleY && // Bord inférieur de la balle dépasse le bord supérieur de la raquette
+        ballY < bottomPaddleY + hPaddleHeight && // Bord supérieur de la balle est au-dessus du bord inférieur de la raquette
+        ballX + ballSize > bottomPaddleX && // Bord droit de la balle dépasse le bord gauche de la raquette
+        ballX < bottomPaddleX + currentBottomPaddleWidth // Bord gauche de la balle est à gauche du bord droit de la raquette
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);

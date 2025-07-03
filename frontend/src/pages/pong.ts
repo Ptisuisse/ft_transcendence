@@ -2,8 +2,6 @@ import '../style.css';
 import { navigateTo } from '../routes.ts';
 import { translations } from '../i18n.ts';
 import { getCurrentLang } from '../components/navbar.ts';
-import { updateTournamentWithWinner } from './tournament.ts';
-import type { TournamentPlayer } from './tournament.ts';
 import { gameState } from '../gameState.ts';
 
 // Translation helper function
@@ -385,62 +383,33 @@ export function PongGamePage(): HTMLElement {
     // Register the cleanup function with the global game state
     gameState.registerCleanup(result.cleanup);
     
-    // Gestion de la fin de partie
-    result.gameOverPromise.then(winner => {
-      const gameOverMessage = document.getElementById('game-over-message');
-      const winnerText = document.getElementById('winner-text');
-      
-      if (gameOverMessage && winnerText) {
-        winnerText.textContent = winner === 'left' 
-          ? `${translations[getCurrentLang()].LeftPlayerWins}!` 
-          : `${translations[getCurrentLang()].RightPlayerWins}!`;
-        gameOverMessage.classList.remove('hidden');
-        
-        // Si c'est un match de tournoi, mettre à jour le tournoi avec le gagnant
-        const matchData = localStorage.getItem('currentTournamentMatch');
-        const matchAborted = localStorage.getItem('matchAborted');
-        
-        // Ne pas mettre à jour le tournoi si le match a été abandonné
-        if (matchData && !matchAborted) {
-          try {
-            const currentMatch = JSON.parse(matchData) as {
-              roundIndex: number;
-              matchIndex: number;
-              player1: TournamentPlayer;
-              player2: TournamentPlayer;
-            };
-            
-            // Récupérer la configuration du tournoi
-            const tournamentConfigStr = localStorage.getItem('tournamentConfig');
-            if (tournamentConfigStr) {
-              const tournamentConfig = JSON.parse(tournamentConfigStr);
-              
-              // Déterminer le joueur gagnant (gauche = player1, droite = player2)
-              const winningPlayer = winner === 'left' ? currentMatch.player1 : currentMatch.player2;
-              
-              // Mettre à jour le tournoi avec le gagnant
-              updateTournamentWithWinner(
-                tournamentConfig,
-                currentMatch.roundIndex,
-                currentMatch.matchIndex,
-                winningPlayer
-              );
-              
-              // Effacer les données du match actuel après un délai
-              setTimeout(() => {
-                localStorage.removeItem('currentTournamentMatch');
-              }, 2000);
-            }
-          } catch (e) {
-            console.error('Error updating tournament with winner', e);
-          }
-        } else if (matchAborted) {
-          // Nettoyer les données si le match a été abandonné
-          localStorage.removeItem('currentTournamentMatch');
-          localStorage.removeItem('matchAborted');
-        }
+    // Ajoutez un écouteur d'événements pour détecter les changements d'URL via la navbar
+    const handleNavigation = () => {
+      if (typeof cleanup === 'function') {
+        cleanup();
       }
+    };
+    
+    // Utiliser un MutationObserver pour surveiller les changements du body
+    // qui pourraient indiquer un changement de page
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(() => {
+        // Si nous sommes plus sur la page du jeu, nettoyer
+        const gameContainer = document.getElementById('game-container');
+        if (!gameContainer || !document.body.contains(gameContainer)) {
+          handleNavigation();
+          observer.disconnect();
+        }
+      });
     });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    // Ajouter à l'élément pour le nettoyage ultérieur
+    (element as any).__navigationObserver = observer;
     
     // Ajouter l'écouteur d'événement beforeunload
     const handleBeforeUnload = () => {
@@ -615,8 +584,17 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
     // Si on nettoie à cause d'une navigation, marquer le match comme abandonné
     const matchData = localStorage.getItem('currentTournamentMatch');
     if (matchData) {
-      const matchAborted = { aborted: true };
+      const matchAborted = { aborted: true, timestamp: Date.now() };
       localStorage.setItem('matchAborted', JSON.stringify(matchAborted));
+      
+      // Force l'abandon du match immédiatement
+      localStorage.removeItem('currentTournamentMatch');
+    }
+    
+    // Déconnecter l'observateur s'il existe
+    const gameElement = document.querySelector('.Parent');
+    if (gameElement && (gameElement as any).__navigationObserver) {
+      (gameElement as any).__navigationObserver.disconnect();
     }
   };
   
@@ -628,9 +606,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   
   // Précalculer des valeurs utilisées fréquemment
   const paddleTop = 0;
-  // const paddleBottom = containerHeight - paddleHeight; // This variable is no longer needed
-  // Remove this unused variable
-  // const ballRight = containerWidth - ballSize;  
   const ballBottom = containerHeight - ballSize;
   const leftPaddleX = 25;
   const rightPaddleX = containerWidth - 25;
@@ -1035,34 +1010,5 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   // Start the game loop
   animationFrameId = requestAnimationFrame(gameLoop);
   
-  // Dans la fonction setupPaddleMovement(), après l'initialisation des variables
-  setTimeout(() => {
-    if (powerupsEnabled && gameContainer && !collectibleElement) {
-      // Force create a test collectible
-      collectibleElement = document.createElement('div');
-      collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
-      collectibleElement.style.width = '25px';
-      collectibleElement.style.height = '25px';
-      collectibleElement.style.backgroundColor = '#00ff00';
-      collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
-      collectibleElement.style.zIndex = '20'; // Valeur plus élevée que les autres éléments
-      collectibleElement.style.pointerEvents = 'none'; // Éviter d'interférer avec les contrôles
-      
-      // Position au centre pour être sûr qu'il est visible
-      collectibleX = containerWidth / 2;
-      collectibleY = containerHeight / 2;
-      
-      collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
-      gameContainer.appendChild(collectibleElement);
-      console.log('Test collectible created!');
-    }
-  }, 1000);
-  
   return { cleanup, gameOverPromise };
 }
-
-// Ajoutez ces traductions dans votre fichier i18n.ts si elles n'existent pas déjà
-/*
-LeftPlayerWins: 'Joueur Gauche Gagne',
-RightPlayerWins: 'Joueur Droite Gagne',
-*/

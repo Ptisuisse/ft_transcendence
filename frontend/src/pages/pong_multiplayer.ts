@@ -452,7 +452,7 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
   let rightScore = 0;
   let topScore = 0;
   let bottomScore = 0;
-  const maxScore = 5;
+  const maxScore = 3;
   let gameOver = false;
   let gameOverResolve: (winner: string) => void;
   
@@ -1058,13 +1058,9 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     ballX = containerWidth / 2 - ballSize / 2;
     ballY = containerHeight / 2 - ballSize / 2;
     
-    // Choose random direction for ball without using unused angle variable
-    ballSpeedX = Math.random() > 0.5 ? 0.5 : -0.5;
-    ballSpeedY = Math.random() > 0.5 ? 0.5 : -0.5;
-    
-    // Ensure minimum velocity on X and Y axes
-    if (Math.abs(ballSpeedX) < 0.5) ballSpeedX = ballSpeedX > 0 ? 0.5 : -0.5;
-    if (Math.abs(ballSpeedY) < 0.5) ballSpeedY = ballSpeedY > 0 ? 0.5 : -0.5;
+    // Utiliser initialSpeed pour la vitesse de la balle, direction aléatoire
+    ballSpeedX = (Math.random() > 0.5 ? 1 : -1) * initialSpeed;
+    ballSpeedY = (Math.random() > 0.5 ? 1 : -1) * initialSpeed * 0.3;
   }
   
   function gameLoop(timestamp: number) {

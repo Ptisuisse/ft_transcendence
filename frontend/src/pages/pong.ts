@@ -462,28 +462,29 @@ function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDi
 
 function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const border = document.createElement('div');
-  // Make it responsive with aspect ratio preservation
+  // Use relative positioning with aspect ratio preservation
   border.className = 'border-2 border-solid border-green-500 w-full max-w-[800px] aspect-[4/3] bg-gray-900 relative overflow-hidden';
   border.id = 'game-container';
   
+  // Left paddle - positions will be set by the game logic
   const leftPaddle = document.createElement('div');
-  leftPaddle.className = 'absolute left-[10px] top-0 w-[15px] h-[100px]';
+  leftPaddle.className = 'absolute';
   leftPaddle.id = 'left-paddle';
   leftPaddle.style.backgroundColor = leftColor;
   leftPaddle.style.willChange = 'transform, height';
-  // Ne pas définir de position Y initiale fixe
   leftPaddle.style.transition = 'height 0.3s ease-in-out';
   
+  // Right paddle - positions will be set by the game logic
   const rightPaddle = document.createElement('div');
-  rightPaddle.className = 'absolute right-[10px] top-0 w-[15px] h-[100px]';
+  rightPaddle.className = 'absolute';
   rightPaddle.id = 'right-paddle';
   rightPaddle.style.backgroundColor = rightColor;
   rightPaddle.style.willChange = 'transform, height';
-  // Ne pas définir de position Y initiale fixe
   rightPaddle.style.transition = 'height 0.3s ease-in-out';
 
+  // Ball - position will be set by the game logic
   const ball = document.createElement('div');
-  ball.className = 'absolute w-[20px] h-[20px] rounded-full';
+  ball.className = 'absolute rounded-full';
   ball.id = 'ball';
   ball.style.willChange = 'transform';
   
@@ -494,7 +495,6 @@ function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTM
   return border;
 }
 
-// Garder le reste des fonctions inchangées
 function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolean = false) {
   const leftPaddle = document.getElementById('left-paddle');
   const rightPaddle = document.getElementById('right-paddle');
@@ -505,187 +505,149 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
 
   if (!leftPaddle || !rightPaddle || !ball || !gameContainer || 
       !leftScoreElement || !rightScoreElement) return { cleanup: () => {}, gameOverPromise: Promise.resolve('none') };
-  
+
   // Score variables
   let leftScore = 0;
   let rightScore = 0;
   const maxScore = 3; // Score maximum pour gagner
   let gameOver = false;
   let gameOverResolve: (winner: string) => void;
-  
+
   // Promesse qui sera résolue quand un joueur gagne
   const gameOverPromise = new Promise<string>(resolve => {
     gameOverResolve = resolve;
   });
-  
-  // Cache initial dimensions to avoid layout thrashing
-  const containerWidth = gameContainer.clientWidth;
-  const containerHeight = gameContainer.clientHeight;
-  const paddleHeight = 100;
-  const ballSize = 20;  // Déplacé ici avant son utilisation
-  
-  // Calculer la position initiale en fonction de la hauteur du conteneur
+
+  // Responsive variables
+  let containerWidth = gameContainer.clientWidth;
+  let containerHeight = gameContainer.clientHeight;
+  const paddleWidthPercent = 0.01875;
+  const paddleHeightPercent = 0.1667;
+  const ballSizePercent = 0.025;
+  const collectibleSizePercent = 0.03;
+  let paddleWidth = containerWidth * paddleWidthPercent;
+  let paddleHeight = containerHeight * paddleHeightPercent;
+  let ballSize = containerWidth * ballSizePercent;
+  let collectibleSize = containerWidth * collectibleSizePercent;
+  let normalPaddleHeight = paddleHeight;
+  let giantPaddleHeight = paddleHeight * 2;
+  let leftPaddleX = containerWidth * 0.0125;
+  let rightPaddleX = containerWidth * 0.9688;
   let leftPaddleY = (containerHeight - paddleHeight) / 2;
   let rightPaddleY = (containerHeight - paddleHeight) / 2;
-  const paddleSpeed = 5;
-  
-  // Ball properties - centrer la balle dans le conteneur
-  let ballX = (containerWidth - ballSize) / 2;
-  let ballY = (containerHeight - ballSize) / 2;
-  let initialSpeed = 4;
+  let paddleSpeed = containerWidth * 0.00625;
+  let ballX = containerWidth / 2 - ballSize / 2;
+  let ballY = containerHeight / 2 - ballSize / 2;
+  let initialSpeed = containerWidth * 0.005;
   let ballSpeedX = initialSpeed;
   let ballSpeedY = initialSpeed * 0.3;
-  const speedIncrement = 1;
-  let maxSpeed = 12;
-  
-  // Track pressed keys with state
-  const keys = {
-    w: false,
-    s: false,
-    arrowup: false,
-    arrowdown: false
-  };
-  
-  // Optimize key event handlers
-  const keyDownHandler = (event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-    if (key in keys) {
-      keys[key as keyof typeof keys] = true;
-      event.preventDefault();
-    }
-  };
-  
-  const keyUpHandler = (event: KeyboardEvent) => {
-    const key = event.key.toLowerCase();
-    if (key in keys) {
-      keys[key as keyof typeof keys] = false;
-    }
-  };
-  
-  document.addEventListener('keydown', keyDownHandler, { passive: false });
-  document.addEventListener('keyup', keyUpHandler, { passive: true });
-  
-  // Clean up function
-  const cleanup = () => {
-    document.removeEventListener('keydown', keyDownHandler);
-    document.removeEventListener('keyup', keyUpHandler);
-    cancelAnimationFrame(animationFrameId);
-    if (powerupTimer !== null) {
-      clearTimeout(powerupTimer);
-      powerupTimer = null;
-    }
-    // Clean up collectible if it exists
-    if (collectibleElement && collectibleElement.parentNode) {
-      gameContainer.removeChild(collectibleElement);
-      collectibleElement = null;
-    }
-    gameOver = true;
-    
-    // Si on nettoie à cause d'une navigation, marquer le match comme abandonné
-    const matchData = localStorage.getItem('currentTournamentMatch');
-    if (matchData) {
-      const matchAborted = { aborted: true, timestamp: Date.now() };
-      localStorage.setItem('matchAborted', JSON.stringify(matchAborted));
-      
-      // Force l'abandon du match immédiatement
-      localStorage.removeItem('currentTournamentMatch');
-    }
-    
-    // Déconnecter l'observateur s'il existe
-    const gameElement = document.querySelector('.Parent');
-    if (gameElement && (gameElement as any).__navigationObserver) {
-      (gameElement as any).__navigationObserver.disconnect();
-    }
-  };
-  
-  // Optimized physics settings
-  const fixedTimeStep = 1000 / 60; // Réduits à 60Hz pour plus de performance
-  let lastTime = 0;
-  let accumulator = 0;
-  let animationFrameId = 0;
-  
-  // Précalculer des valeurs utilisées fréquemment
-  const paddleTop = 0;
-  const ballBottom = containerHeight - ballSize;
-  const leftPaddleX = 25;
-  const rightPaddleX = containerWidth - 25;
-  
-  let aiTargetY = rightPaddleY;
-  let aiLastUpdate = performance.now();
-  
-  // Optimization: Create DOM operation buffer
+  const speedIncrement = initialSpeed * 0.125;
+  let maxSpeed = initialSpeed * 2.5;
   let pendingLeftPaddleY = leftPaddleY;
   let pendingRightPaddleY = rightPaddleY;
   let pendingBallX = ballX;
   let pendingBallY = ballY;
-  
-  // Define paddle dimensions for normal and power-up states
-  const normalPaddleHeight = paddleHeight;
-  const giantPaddleHeight = paddleHeight * 2;
-  
-  // Power-up state
+  const keys = { w: false, s: false, arrowup: false, arrowdown: false };
+  let aiTargetY = rightPaddleY;
+  let aiLastUpdate = performance.now();
+  let lastTime = performance.now();
+  const fixedTimeStep = 1000 / 60;
+  let accumulator = 0;
+  let animationFrameId = 0;
   let powerupActive = false;
   let powerupAffectedPaddle: 'left' | 'right' | null = null;
   let powerupTimer: number | null = null;
-  let powerupDuration = 5000; // 5 seconds
+  let powerupDuration = 5000;
   let lastPowerupTime = 0;
-  let powerupCooldown = 500; // 10 seconds between power-ups
-  
-  // Collectible state
+  let powerupCooldown = 500;
   let collectibleElement: HTMLDivElement | null = null;
   let collectibleX = 0;
   let collectibleY = 0;
-  
-  // Modify the updatePhysics function to handle power-ups
-  function updatePhysics()
-  {
-    // Move left paddle with keyboard input
-    if (keys.w) leftPaddleY = Math.max(paddleTop, leftPaddleY - paddleSpeed);
+
+  // Resize observer
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.target === gameContainer) {
+        const oldWidth = containerWidth;
+        const oldHeight = containerHeight;
+        containerWidth = entry.contentRect.width;
+        containerHeight = entry.contentRect.height;
+        const widthRatio = containerWidth / oldWidth;
+        const heightRatio = containerHeight / oldHeight;
+        paddleWidth = containerWidth * paddleWidthPercent;
+        paddleHeight = containerHeight * paddleHeightPercent;
+        normalPaddleHeight = paddleHeight;
+        giantPaddleHeight = paddleHeight * 2;
+        ballSize = containerWidth * ballSizePercent;
+        collectibleSize = containerWidth * collectibleSizePercent;
+        leftPaddleX = containerWidth * 0.0125;
+        rightPaddleX = containerWidth * 0.9688;
+        leftPaddleY *= heightRatio;
+        rightPaddleY *= heightRatio;
+        ballX *= widthRatio;
+        ballY *= heightRatio;
+        paddleSpeed = containerWidth * 0.00625;
+        initialSpeed = containerWidth * 0.005;
+        ballSpeedX *= widthRatio;
+        ballSpeedY *= heightRatio;
+        maxSpeed = initialSpeed * 2.5;
+        applyChanges();
+      }
+    }
+  });
+  resizeObserver.observe(gameContainer);
+
+  function applyChanges() {
+    if (leftPaddle && rightPaddle && ball) {
+      ball.style.width = `${ballSize}px`;
+      ball.style.height = `${ballSize}px`;
+      ball.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`;
+      leftPaddle.style.width = `${paddleWidth}px`;
+      leftPaddle.style.height = powerupActive && powerupAffectedPaddle === 'left' ? `${giantPaddleHeight}px` : `${normalPaddleHeight}px`;
+      leftPaddle.style.transform = `translate3d(${leftPaddleX}px, ${pendingLeftPaddleY}px, 0)`;
+      rightPaddle.style.width = `${paddleWidth}px`;
+      rightPaddle.style.height = powerupActive && powerupAffectedPaddle === 'right' ? `${giantPaddleHeight}px` : `${normalPaddleHeight}px`;
+      rightPaddle.style.transform = `translate3d(${rightPaddleX - paddleWidth}px, ${pendingRightPaddleY}px, 0)`;
+      if (collectibleElement) {
+        collectibleElement.style.width = `${collectibleSize}px`;
+        collectibleElement.style.height = `${collectibleSize}px`;
+      }
+    }
+  }
+
+  function updatePhysics() {
+    if (keys.w) leftPaddleY = Math.max(0, leftPaddleY - paddleSpeed);
     if (keys.s) {
-      // Get current left paddle height based on power-up state
-      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
-        ? giantPaddleHeight 
-        : normalPaddleHeight;
-      // Dynamic bottom boundary
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' ? giantPaddleHeight : normalPaddleHeight;
       const leftPaddleBottom = containerHeight - currentLeftPaddleHeight;
       leftPaddleY = Math.min(leftPaddleBottom, leftPaddleY + paddleSpeed);
     }
-    
-    // Move right paddle based on AI status
-    if (aiEnabled)
-    {
-      //
-      const now = performance.now(); // Add this line to define 'now'
+    if (aiEnabled) {
+      const now = performance.now();
       if (now - aiLastUpdate > 1000) {
         aiLastUpdate = now;
-
-        // Prédire la position Y de la balle à l'arrivée sur la raquette droite
         if (ballSpeedX > 0) {
           let simX = ballX;
           let simY = ballY;
           let simSpeedX = ballSpeedX;
           let simSpeedY = ballSpeedY;
-
           while (simX + ballSize < rightPaddleX) {
             simX += simSpeedX;
             simY += simSpeedY;
             if (simY < 0) {
               simY = -simY;
               simSpeedY = -simSpeedY;
-            } else if (simY > ballBottom) {
-              simY = 2 * ballBottom - simY;
+            } else if (simY + ballSize > containerHeight) {
+              simY = 2 * (containerHeight - ballSize) - simY;
               simSpeedY = -simSpeedY;
             }
           }
-          const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right'
-            ? giantPaddleHeight 
-            : normalPaddleHeight;
+          const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' ? giantPaddleHeight : normalPaddleHeight;
           aiTargetY = simY + ballSize / 2 - currentRightPaddleHeight / 2;
         } else {
-          aiTargetY = containerHeight / 2 - paddleHeight / 2;
+          aiTargetY = containerHeight / 2 - normalPaddleHeight / 2;
         }
       }
-      // Simule l'appui sur les touches pour déplacer la raquette
       if (Math.abs(rightPaddleY - aiTargetY) > paddleSpeed) {
         if (rightPaddleY < aiTargetY) {
           keys.arrowdown = true;
@@ -698,215 +660,121 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
         keys.arrowup = false;
         keys.arrowdown = false;
       }
-
-      // Applique le déplacement comme un joueur humain
-      if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
-      if (keys.arrowdown) {
-        const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
-          ? giantPaddleHeight 
-          : normalPaddleHeight;
-        const rightPaddleBottom = containerHeight - currentRightPaddleHeight;
-        rightPaddleY = Math.min(rightPaddleBottom, rightPaddleY + paddleSpeed);
-      }
-    } 
-    else 
-    {
-      if (keys.arrowup) rightPaddleY = Math.max(paddleTop, rightPaddleY - paddleSpeed);
-      if (keys.arrowdown) {
-        const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
-          ? giantPaddleHeight 
-          : normalPaddleHeight;
-        const rightPaddleBottom = containerHeight - currentRightPaddleHeight;
-        rightPaddleY = Math.min(rightPaddleBottom, rightPaddleY + paddleSpeed);
-      }
     }
-    // Sauvegarde la position précédente de la balle
+    if (keys.arrowup) rightPaddleY = Math.max(0, rightPaddleY - paddleSpeed);
+    if (keys.arrowdown) {
+      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' ? giantPaddleHeight : normalPaddleHeight;
+      const rightPaddleBottom = containerHeight - currentRightPaddleHeight;
+      rightPaddleY = Math.min(rightPaddleBottom, rightPaddleY + paddleSpeed);
+    }
     const prevBallX = ballX;
-
-    // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
-    
-    // Optimized collision with top and bottom walls
     if (ballY < 0) {
       ballY = 0;
       ballSpeedY = -ballSpeedY;
-    } else if (ballY > ballBottom) {
-      ballY = ballBottom;
+    } else if (ballY + ballSize > containerHeight) {
+      ballY = containerHeight - ballSize;
       ballSpeedY = -ballSpeedY;
     }
-    
-    // --- Correction collision continue ---
-
-    // Left paddle collision (continuous)
     if (
-      ballSpeedX < 0 && // Only check collision if ball is moving left
-      prevBallX >= leftPaddleX && 
-      ballX < leftPaddleX
+      ballSpeedX < 0 &&
+      prevBallX >= leftPaddleX + paddleWidth &&
+      ballX < leftPaddleX + paddleWidth
     ) {
-      // Ne pas appliquer de décalage à la position pour la détection de collision
-      const effectiveLeftPaddleY = leftPaddleY;
-      
-      // Use the correct height based on power-up state
-      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left'
-        ? giantPaddleHeight 
-        : normalPaddleHeight;
-      
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' ? giantPaddleHeight : normalPaddleHeight;
       if (
-        ballY + ballSize > effectiveLeftPaddleY &&
-        ballY < effectiveLeftPaddleY + currentLeftPaddleHeight
+        ballY + ballSize > leftPaddleY &&
+        ballY < leftPaddleY + currentLeftPaddleHeight
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
         const speedRatio = newSpeed / currentSpeed;
-
         ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
-        // Use the middle of the current paddle height for hit calculation
-        const hitPosition = (ballY + ballSize/2 - (effectiveLeftPaddleY + currentLeftPaddleHeight/2)) / (currentLeftPaddleHeight/2);
+        const hitPosition = (ballY + ballSize/2 - (leftPaddleY + currentLeftPaddleHeight/2)) / (currentLeftPaddleHeight/2);
         ballSpeedY = newSpeed * hitPosition * 0.8;
-
-        // Replace la balle juste à côté de la raquette
-        ballX = leftPaddleX + 15;
+        ballX = leftPaddleX + paddleWidth;
       }
     }
-
-    // Right paddle collision (continuous)
     if (
-      ballSpeedX > 0 && // Only check collision if ball is moving right
-      prevBallX + ballSize <= rightPaddleX && 
+      ballSpeedX > 0 &&
+      prevBallX + ballSize <= rightPaddleX &&
       ballX + ballSize > rightPaddleX
     ) {
-      // Ne pas appliquer de décalage à la position pour la détection de collision
-      const effectiveRightPaddleY = rightPaddleY;
-      
-      // Use the correct height based on power-up state
-      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right'
-        ? giantPaddleHeight 
-        : normalPaddleHeight;
-      
+      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' ? giantPaddleHeight : normalPaddleHeight;
       if (
-        ballY + ballSize > effectiveRightPaddleY &&
-        ballY < effectiveRightPaddleY + currentRightPaddleHeight
+        ballY + ballSize > rightPaddleY &&
+        ballY < rightPaddleY + currentRightPaddleHeight
       ) {
         const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
         const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
         const speedRatio = newSpeed / currentSpeed;
-
         ballSpeedX = -Math.abs(ballSpeedX) * speedRatio;
-        // Use the middle of the current paddle height for hit calculation
-        const hitPosition = (ballY + ballSize/2 - (effectiveRightPaddleY + currentRightPaddleHeight/2)) / (currentRightPaddleHeight/2);
+        const hitPosition = (ballY + ballSize/2 - (rightPaddleY + currentRightPaddleHeight/2)) / (currentRightPaddleHeight/2);
         ballSpeedY = newSpeed * hitPosition * 0.8;
-
-        // Replace la balle juste à côté de la raquette
         ballX = rightPaddleX - ballSize;
       }
     }
-    
-    // Ball out of bounds - update score and reset
     if (ballX < -ballSize) {
-      // Right player scores when ball goes past left boundary
       rightScore++;
-      if (rightScoreElement) {
-        rightScoreElement.textContent = rightScore.toString();
-      }
-      
-      // Vérifier si le joueur de droite a gagné
+      if (rightScoreElement) rightScoreElement.textContent = rightScore.toString();
       if (rightScore >= maxScore) {
         gameOver = true;
         gameOverResolve('right');
         return;
       }
-      
-      // Reset ball to center
-      ballX = containerWidth / 2 - ballSize / 2;
-      ballY = containerHeight / 2 - ballSize / 2;
-      
-      // Ball goes towards the player who just lost
+      resetBall();
       ballSpeedX = initialSpeed;
-      ballSpeedY = (Math.random() * 2 - 1) * initialSpeed * 0.3;
     } else if (ballX > containerWidth) {
-      // Left player scores when ball goes past right boundary
       leftScore++;
-      if (leftScoreElement) {
-        leftScoreElement.textContent = leftScore.toString();
-      }
-      
-      // Vérifier si le joueur de gauche a gagné
+      if (leftScoreElement) leftScoreElement.textContent = leftScore.toString();
       if (leftScore >= maxScore) {
         gameOver = true;
         gameOverResolve('left');
         return;
       }
-      
-      // Reset ball to center
-      ballX = containerWidth / 2 - ballSize / 2;
-      ballY = containerHeight / 2 - ballSize / 2;
-      
-      // Ball goes towards the player who just lost
+      resetBall();
       ballSpeedX = -initialSpeed;
-      ballSpeedY = (Math.random() * 2 - 1) * initialSpeed * 0.3;
     }
-    
-    // Power-up logic (only if enabled)
     if (powerupsEnabled && gameContainer) {
       const now = performance.now();
-      
-      // Generate a new collectible if none exists and cooldown has passed
       if (!powerupActive && !collectibleElement && now - lastPowerupTime > powerupCooldown) {
-        // Very high chance to spawn a power-up collectible (90% chance per frame)
-        if (Math.random() < 0.9) { // Increased from 1% to 90% chance
-          // Create collectible at random position
+        if (Math.random() < 0.01) {
           collectibleElement = document.createElement('div');
           collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
-          collectibleElement.style.width = '25px';
-          collectibleElement.style.height = '25px';
+          collectibleElement.style.width = `${collectibleSize}px`;
+          collectibleElement.style.height = `${collectibleSize}px`;
           collectibleElement.style.backgroundColor = '#00ff00';
           collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
-          collectibleElement.style.zIndex = '20'; // Valeur plus élevée que les autres éléments
-          collectibleElement.style.pointerEvents = 'none'; // Éviter d'interférer avec les contrôles
-          
-          // Random position within safe boundaries
+          collectibleElement.style.zIndex = '20';
+          collectibleElement.style.pointerEvents = 'none';
           collectibleX = 100 + Math.random() * (containerWidth - 200);
           collectibleY = 100 + Math.random() * (containerHeight - 200);
-          
           collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
           gameContainer.appendChild(collectibleElement);
           lastPowerupTime = now;
         }
       }
-      
-      // Check for collision between ball and collectible
       if (collectibleElement) {
         const ballRadius = ballSize / 2;
-        const collectibleRadius = 12.5; // Half of the 25px width
-        
+        const collectibleRadius = collectibleSize / 2;
         const dx = (ballX + ballRadius) - (collectibleX + collectibleRadius);
         const dy = (ballY + ballRadius) - (collectibleY + collectibleRadius);
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
         if (distance < ballRadius + collectibleRadius) {
-          // Collision detected - activate power-up
           powerupActive = true;
           powerupAffectedPaddle = ballSpeedX > 0 ? 'left' : 'right';
-          
-          // Remove the collectible
-          if (collectibleElement && collectibleElement.parentNode && gameContainer) {
+          if (collectibleElement && collectibleElement.parentNode) {
             gameContainer.removeChild(collectibleElement);
             collectibleElement = null;
           }
-          
-          // Create power-up notification
           const notification = document.createElement('div');
           notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-4 py-2 rounded-md z-50';
           notification.textContent = `${t('GiantPaddle')} (${powerupAffectedPaddle === 'left' ? t('Player') + ' 1' : t('Player') + ' 2'})`;
           document.body.appendChild(notification);
-          
-          // Remove notification after 2 seconds
           setTimeout(() => {
             document.body.removeChild(notification);
           }, 2000);
-          
-          // End power-up after duration
           powerupTimer = window.setTimeout(() => {
             powerupActive = false;
             powerupAffectedPaddle = null;
@@ -915,100 +783,80 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
         }
       }
     } else if (collectibleElement && collectibleElement.parentNode && gameContainer) {
-      // Clean up collectible if power-ups are disabled
       gameContainer.removeChild(collectibleElement);
       collectibleElement = null;
     }
-    
-    // IMPORTANT: Update pending values for DOM operations
     pendingLeftPaddleY = leftPaddleY;
     pendingRightPaddleY = rightPaddleY;
     pendingBallX = ballX;
     pendingBallY = ballY;
   }
-  
-  function applyChanges()
-  {
-    // Apply all DOM updates in one batch to prevent layout thrashing
-    if (leftPaddle && rightPaddle && ball)
-    {
-      // Basic transform for ball
-      ball.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`;
-      
-      // Update paddle heights based on power-up state
-      if (powerupActive) {
-        if (powerupAffectedPaddle === 'left') {
-          leftPaddle.style.height = `${giantPaddleHeight}px`;
-          
-          // Simple direct positioning - allows the paddle to touch the bottom edge
-          // Use same position as physics update, which already limits it correctly
-          leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
-        } else {
-          leftPaddle.style.height = `${normalPaddleHeight}px`;
-          leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
-        }
-        
-        if (powerupAffectedPaddle === 'right') {
-          rightPaddle.style.height = `${giantPaddleHeight}px`;
-          
-          // Simple direct positioning - allows the paddle to touch the bottom edge
-          // Use same position as physics update, which already limits it correctly
-          rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
-        } else {
-          rightPaddle.style.height = `${normalPaddleHeight}px`;
-          rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
-        }
-      } else {
-        // Reset to normal size when power-up is not active
-        leftPaddle.style.height = `${normalPaddleHeight}px`;
-        leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
-        
-        rightPaddle.style.height = `${normalPaddleHeight}px`;
-        rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
-      }
-    }
+
+  function resetBall() {
+    ballX = containerWidth / 2 - ballSize / 2;
+    ballY = containerHeight / 2 - ballSize / 2;
+    ballSpeedY = (Math.random() * 2 - 1) * initialSpeed * 0.3;
   }
-  
-  // Optimized game loop with frame limiting
+
+  const cleanup = () => {
+    document.removeEventListener('keydown', keyDownHandler);
+    document.removeEventListener('keyup', keyUpHandler);
+    resizeObserver.disconnect();
+    cancelAnimationFrame(animationFrameId);
+    if (powerupTimer !== null) {
+      clearTimeout(powerupTimer);
+      powerupTimer = null;
+    }
+    if (collectibleElement && collectibleElement.parentNode) {
+      gameContainer.removeChild(collectibleElement);
+      collectibleElement = null;
+    }
+    gameOver = true;
+    const matchData = localStorage.getItem('currentTournamentMatch');
+    if (matchData) {
+      const matchAborted = { aborted: true, timestamp: Date.now() };
+      localStorage.setItem('matchAborted', JSON.stringify(matchAborted));
+      localStorage.removeItem('currentTournamentMatch');
+    }
+    const gameElement = document.querySelector('.Parent');
+    if (gameElement && (gameElement as any).__navigationObserver) {
+      (gameElement as any).__navigationObserver.disconnect();
+    }
+  };
+
+  const keyDownHandler = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key as keyof typeof keys] = true;
+      event.preventDefault();
+    }
+  };
+  const keyUpHandler = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    if (key in keys) {
+      keys[key as keyof typeof keys] = false;
+    }
+  };
+  document.addEventListener('keydown', keyDownHandler, { passive: false });
+  document.addEventListener('keyup', keyUpHandler, { passive: true });
+
   function gameLoop(timestamp: number) {
-    if (gameOver) return; // Arrêter la boucle si le jeu est terminé
-    
-    if (!lastTime) lastTime = timestamp;
-    
-    const frameTime = Math.min(timestamp - lastTime, 50); // Cap at 50ms to prevent spiral of death
+    if (gameOver) return;
+    const deltaTime = timestamp - lastTime;
     lastTime = timestamp;
-    
-    // Accumulate time since last frame
-    accumulator += frameTime;
-    
-    // Limit physics updates to avoid CPU overload
-    let iterations = 0;
-    const maxIterations = 5;
-    
-    while (accumulator >= fixedTimeStep && iterations < maxIterations) {
+    const cappedDeltaTime = Math.min(deltaTime, 50);
+    accumulator += cappedDeltaTime;
+    while (accumulator >= fixedTimeStep) {
       updatePhysics();
-      // Si le jeu est terminé après une mise à jour physique, sortir de la boucle
       if (gameOver) break;
       accumulator -= fixedTimeStep;
-      iterations++;
     }
-    
-    // If we're still behind after max iterations, reset accumulator to prevent lag spiral
-    if (iterations >= maxIterations && accumulator >= fixedTimeStep) {
-      accumulator = 0;
-    }
-    
-    // Apply visual updates once per frame regardless of physics steps
     applyChanges();
-    
-    // Continue the game loop if le jeu n'est pas terminé
     if (!gameOver) {
       animationFrameId = requestAnimationFrame(gameLoop);
     }
   }
-  
-  // Start the game loop
-  animationFrameId = requestAnimationFrame(gameLoop);
-  
+  lastTime = performance.now();
+  gameLoop(lastTime);
   return { cleanup, gameOverPromise };
 }

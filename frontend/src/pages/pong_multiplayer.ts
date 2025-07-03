@@ -10,6 +10,7 @@ interface PongMultiplayerSettings {
   rightPaddleColor: string;
   topPaddleColor: string;
   bottomPaddleColor: string;
+  powerupsEnabled: boolean; // Add this field
 }
 
 // Page du menu
@@ -107,6 +108,66 @@ export function PongMultiplayerMenuPage(): HTMLElement {
   bottomPaddleSection.appendChild(bottomPaddleColorPicker);
   menuModal.appendChild(bottomPaddleSection);
   
+  // Power-ups section
+  const powerupsSection = document.createElement('div');
+  powerupsSection.className = 'mb-6';
+
+  const powerupsLabel = document.createElement('p');
+  powerupsLabel.className = 'text-white mb-2';
+  powerupsLabel.textContent = translations[getCurrentLang()].EnablePowerups || "Enable Power-ups";
+  powerupsSection.appendChild(powerupsLabel);
+
+  // Power-ups toggle
+  const powerupsContainer = document.createElement('div');
+  powerupsContainer.className = 'flex items-center justify-between';
+
+  const normalGameLabel = document.createElement('span');
+  normalGameLabel.className = 'text-white text-sm';
+  normalGameLabel.textContent = translations[getCurrentLang()].NormalGame || "Normal Game";
+
+  const powerupsGameLabel = document.createElement('span');
+  powerupsGameLabel.className = 'text-white text-sm';
+  powerupsGameLabel.textContent = translations[getCurrentLang()].PowerupsGame || "Power-ups";
+
+  const powerupsToggleSwitch = document.createElement('label');
+  powerupsToggleSwitch.className = 'relative inline-block w-12 h-6 mx-4';
+
+  const powerupsToggleInput = document.createElement('input');
+  powerupsToggleInput.type = 'checkbox';
+  powerupsToggleInput.className = 'opacity-0 w-0 h-0';
+  powerupsToggleInput.id = 'powerups-toggle';
+  powerupsToggleInput.checked = false;
+
+  const powerupsToggleSlider = document.createElement('span');
+  powerupsToggleSlider.className = 'absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-400 rounded-full transition-all duration-300';
+  powerupsToggleSlider.style.transition = '0.4s';
+
+  const powerupsToggleButton = document.createElement('span');
+  powerupsToggleButton.className = 'absolute left-1 bottom-1 w-4 h-4 bg-white rounded-full transition-all duration-300';
+  powerupsToggleButton.style.transition = '0.4s';
+
+  powerupsToggleInput.addEventListener('change', () => {
+    if (powerupsToggleInput.checked) {
+      powerupsToggleSlider.classList.remove('bg-gray-400');
+      powerupsToggleSlider.classList.add('bg-green-500');
+      powerupsToggleButton.style.transform = 'translateX(24px)';
+    } else {
+      powerupsToggleSlider.classList.remove('bg-green-500');
+      powerupsToggleSlider.classList.add('bg-gray-400');
+      powerupsToggleButton.style.transform = 'translateX(0)';
+    }
+  });
+
+  powerupsToggleSlider.appendChild(powerupsToggleButton);
+  powerupsToggleSwitch.appendChild(powerupsToggleInput);
+  powerupsToggleSwitch.appendChild(powerupsToggleSlider);
+  powerupsContainer.appendChild(normalGameLabel);
+  powerupsContainer.appendChild(powerupsToggleSwitch);
+  powerupsContainer.appendChild(powerupsGameLabel);
+
+  powerupsSection.appendChild(powerupsContainer);
+  menuModal.appendChild(powerupsSection);
+  
   // Start button
   const startButton = document.createElement('button');
   startButton.className = 'w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors font-bold';
@@ -118,7 +179,8 @@ export function PongMultiplayerMenuPage(): HTMLElement {
       leftPaddleColor: leftPaddleColorPicker.value,
       rightPaddleColor: rightPaddleColorPicker.value,
       topPaddleColor: topPaddleColorPicker.value,
-      bottomPaddleColor: bottomPaddleColorPicker.value
+      bottomPaddleColor: bottomPaddleColorPicker.value,
+      powerupsEnabled: (document.getElementById('powerups-toggle') as HTMLInputElement)?.checked || false
     };
     
     // Stocker dans localStorage pour y accéder depuis la page de jeu
@@ -145,7 +207,8 @@ export function PongMultiplayerGamePage(): HTMLElement {
     leftPaddleColor: '#FF0000',
     rightPaddleColor: '#00AAFF',
     topPaddleColor: '#00FF00',
-    bottomPaddleColor: '#FFFF00'
+    bottomPaddleColor: '#FFFF00',
+    powerupsEnabled: false // Default value
   };
   
   try {
@@ -211,7 +274,7 @@ export function PongMultiplayerGamePage(): HTMLElement {
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
-    const result = setupPaddleMovement();
+    const result = setupPaddleMovement(settings.powerupsEnabled);
     cleanup = result.cleanup;
     
     // Gestion de la fin de partie
@@ -365,7 +428,7 @@ function createGameContainer(
   return border;
 }
 
-function setupPaddleMovement() {
+function setupPaddleMovement(powerupsEnabled: boolean = false) {
   const leftPaddle = document.getElementById('left-paddle');
   const rightPaddle = document.getElementById('right-paddle');
   const topPaddle = document.getElementById('top-paddle');
@@ -393,7 +456,7 @@ function setupPaddleMovement() {
   let gameOverResolve: (winner: string) => void;
   
   // Tracker pour le dernier joueur qui a touché la balle
-  let lastPlayerTouched = ''; // 'left', 'right', 'top', ou 'bottom'
+  let lastPlayerTouched: 'left' | 'right' | 'top' | 'bottom' | '' = '';
   
   // Promesse qui sera résolue quand un joueur gagne
   const gameOverPromise = new Promise<string>(resolve => {
@@ -470,6 +533,17 @@ function setupPaddleMovement() {
     document.removeEventListener('keyup', keyUpHandler);
     cancelAnimationFrame(animationFrameId);
     gameOver = true;
+    
+    if (powerupTimer !== null) {
+      clearTimeout(powerupTimer);
+      powerupTimer = null;
+    }
+    
+    // Clean up collectible if it exists
+    if (collectibleElement && collectibleElement.parentNode) {
+      gameContainer.removeChild(collectibleElement);
+      collectibleElement = null;
+    }
   };
   
   // Optimized physics settings
@@ -492,24 +566,63 @@ function setupPaddleMovement() {
   let pendingBallX = ballX;
   let pendingBallY = ballY;
   
+  // Define paddle dimensions for normal and power-up states
+  const normalVPaddleHeight = vPaddleHeight; // 100px
+  const giantVPaddleHeight = vPaddleHeight * 2; // 200px
+  const normalHPaddleWidth = hPaddleWidth; // 100px
+  const giantHPaddleWidth = hPaddleWidth * 2; // 200px
+  
+  // Power-up state
+  let powerupActive = false;
+  let powerupAffectedPaddle: 'left' | 'right' | 'top' | 'bottom' | null = null;
+  let powerupTimer: number | null = null;
+  let powerupDuration = 5000; // 5 seconds
+  let lastPowerupTime = 0;
+  let powerupCooldown = 10000; // 10 seconds between power-ups
+  
+  // Collectible state
+  let collectibleElement: HTMLDivElement | null = null;
+  let collectibleX = 0;
+  let collectibleY = 0;
+  
   function updatePhysics() {
-    // Move paddles with keyboard input
+    // Move paddles with keyboard input - use current paddle dimensions
     
     // Left paddle (Player 1)
     if (keys.w) leftPaddleY = Math.max(0, leftPaddleY - paddleSpeed);
-    if (keys.s) leftPaddleY = Math.min(containerHeight - vPaddleHeight, leftPaddleY + paddleSpeed);
+    if (keys.s) {
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
+        ? giantVPaddleHeight 
+        : normalVPaddleHeight;
+      leftPaddleY = Math.min(containerHeight - currentLeftPaddleHeight, leftPaddleY + paddleSpeed);
+    }
     
     // Right paddle (Player 2)
     if (keys.arrowup) rightPaddleY = Math.max(0, rightPaddleY - paddleSpeed);
-    if (keys.arrowdown) rightPaddleY = Math.min(containerHeight - vPaddleHeight, rightPaddleY + paddleSpeed);
+    if (keys.arrowdown) {
+      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
+        ? giantVPaddleHeight 
+        : normalVPaddleHeight;
+      rightPaddleY = Math.min(containerHeight - currentRightPaddleHeight, rightPaddleY + paddleSpeed);
+    }
     
-    // Top paddle (Player 3) - Modifié de A/D à O/P
+    // Top paddle (Player 3)
     if (keys.o) topPaddleX = Math.max(0, topPaddleX - paddleSpeed);
-    if (keys.p) topPaddleX = Math.min(containerWidth - hPaddleWidth, topPaddleX + paddleSpeed);
+    if (keys.p) {
+      const currentTopPaddleWidth = powerupActive && powerupAffectedPaddle === 'top' 
+        ? giantHPaddleWidth 
+        : normalHPaddleWidth;
+      topPaddleX = Math.min(containerWidth - currentTopPaddleWidth, topPaddleX + paddleSpeed);
+    }
     
-    // Bottom paddle (Player 4) - Modifié de ←/→ à C/V
+    // Bottom paddle (Player 4)
     if (keys.c) bottomPaddleX = Math.max(0, bottomPaddleX - paddleSpeed);
-    if (keys.v) bottomPaddleX = Math.min(containerWidth - hPaddleWidth, bottomPaddleX + paddleSpeed);
+    if (keys.v) {
+      const currentBottomPaddleWidth = powerupActive && powerupAffectedPaddle === 'bottom' 
+        ? giantHPaddleWidth 
+        : normalHPaddleWidth;
+      bottomPaddleX = Math.min(containerWidth - currentBottomPaddleWidth, bottomPaddleX + paddleSpeed);
+    }
     
     // Sauvegarde la position précédente de la balle
     const prevBallX = ballX;
@@ -519,95 +632,208 @@ function setupPaddleMovement() {
     ballX += ballSpeedX;
     ballY += ballSpeedY;
     
-    // Left paddle collision
+    // Left paddle collision - with power-up consideration
     if (
       ballSpeedX < 0 && 
       prevBallX >= leftPaddleX + vPaddleWidth && 
-      ballX < leftPaddleX + vPaddleWidth &&
-      ballY + ballSize > leftPaddleY &&
-      ballY < leftPaddleY + vPaddleHeight
+      ballX < leftPaddleX + vPaddleWidth
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      const currentLeftPaddleHeight = powerupActive && powerupAffectedPaddle === 'left' 
+        ? giantVPaddleHeight 
+        : normalVPaddleHeight;
+      
+      if (
+        ballY + ballSize > leftPaddleY &&
+        ballY < leftPaddleY + currentLeftPaddleHeight
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
-      // Influence de la position d'impact
-      const hitPosition = (ballY + ballSize/2 - (leftPaddleY + vPaddleHeight/2)) / (vPaddleHeight/2);
-      ballSpeedY = newSpeed * hitPosition * 0.8;
+        ballSpeedX = Math.abs(ballSpeedX) * speedRatio;
+        // Use the middle of the current paddle height for hit calculation
+        const hitPosition = (ballY + ballSize/2 - (leftPaddleY + currentLeftPaddleHeight/2)) / (currentLeftPaddleHeight/2);
+        ballSpeedY = newSpeed * hitPosition * 0.8;
 
-      // Replace la balle juste à côté de la raquette
-      ballX = leftPaddleX + vPaddleWidth;
+        // Replace la balle juste à côté de la raquette
+        ballX = leftPaddleX + vPaddleWidth;
 
-      // Enregistrer que le joueur gauche a touché la balle en dernier
-      lastPlayerTouched = 'left';
+        // Enregistrer que le joueur gauche a touché la balle en dernier
+        lastPlayerTouched = 'left';
+      }
     }
 
-    // Right paddle collision
+    // Right paddle collision - with power-up consideration
     if (
       ballSpeedX > 0 && 
       prevBallX + ballSize <= rightPaddleX && 
-      ballX + ballSize > rightPaddleX &&
-      ballY + ballSize > rightPaddleY &&
-      ballY < rightPaddleY + vPaddleHeight
+      ballX + ballSize > rightPaddleX
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      const currentRightPaddleHeight = powerupActive && powerupAffectedPaddle === 'right' 
+        ? giantVPaddleHeight 
+        : normalVPaddleHeight;
+      
+      if (
+        ballY + ballSize > rightPaddleY &&
+        ballY < rightPaddleY + currentRightPaddleHeight
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedX = -Math.abs(ballSpeedX) * speedRatio;
-      const hitPosition = (ballY + ballSize/2 - (rightPaddleY + vPaddleHeight/2)) / (vPaddleHeight/2);
-      ballSpeedY = newSpeed * hitPosition * 0.8;
+        ballSpeedX = -Math.abs(ballSpeedX) * speedRatio;
+        const hitPosition = (ballY + ballSize/2 - (rightPaddleY + currentRightPaddleHeight/2)) / (currentRightPaddleHeight/2);
+        ballSpeedY = newSpeed * hitPosition * 0.8;
 
-      ballX = rightPaddleX - ballSize;
+        ballX = rightPaddleX - ballSize;
 
-      // Enregistrer que le joueur droit a touché la balle en dernier
-      lastPlayerTouched = 'right';
+        // Enregistrer que le joueur droit a touché la balle en dernier
+        lastPlayerTouched = 'right';
+      }
     }
     
-    // Top paddle collision
+    // Top paddle collision - with power-up consideration
     if (
       ballSpeedY < 0 && 
       prevBallY >= topPaddleY + hPaddleHeight && 
-      ballY < topPaddleY + hPaddleHeight &&
-      ballX + ballSize > topPaddleX &&
-      ballX < topPaddleX + hPaddleWidth
+      ballY < topPaddleY + hPaddleHeight
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      const currentTopPaddleWidth = powerupActive && powerupAffectedPaddle === 'top' 
+        ? giantHPaddleWidth 
+        : normalHPaddleWidth;
+      
+      if (
+        ballX + ballSize > topPaddleX &&
+        ballX < topPaddleX + currentTopPaddleWidth
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedY = Math.abs(ballSpeedY) * speedRatio;
-      // Influence de la position d'impact horizontale
-      const hitPosition = (ballX + ballSize/2 - (topPaddleX + hPaddleWidth/2)) / (hPaddleWidth/2);
-      ballSpeedX = newSpeed * hitPosition * 0.8;
+        ballSpeedY = Math.abs(ballSpeedY) * speedRatio;
+        // Influence de la position d'impact horizontale
+        const hitPosition = (ballX + ballSize/2 - (topPaddleX + currentTopPaddleWidth/2)) / (currentTopPaddleWidth/2);
+        ballSpeedX = newSpeed * hitPosition * 0.8;
 
-      ballY = topPaddleY + hPaddleHeight;
+        ballY = topPaddleY + hPaddleHeight;
 
-      // Enregistrer que le joueur du haut a touché la balle en dernier
-      lastPlayerTouched = 'top';
+        // Enregistrer que le joueur du haut a touché la balle en dernier
+        lastPlayerTouched = 'top';
+      }
     }
 
-    // Bottom paddle collision
+    // Bottom paddle collision - with power-up consideration
     if (
       ballSpeedY > 0 && 
       prevBallY + ballSize <= bottomPaddleY && 
-      ballY + ballSize > bottomPaddleY &&
-      ballX + ballSize > bottomPaddleX &&
-      ballX < bottomPaddleX + hPaddleWidth
+      ballY + ballSize > bottomPaddleY
     ) {
-      const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
-      const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
-      const speedRatio = newSpeed / currentSpeed;
+      const currentBottomPaddleWidth = powerupActive && powerupAffectedPaddle === 'bottom' 
+        ? giantHPaddleWidth 
+        : normalHPaddleWidth;
+      
+      if (
+        ballX + ballSize > bottomPaddleX &&
+        ballX < bottomPaddleX + currentBottomPaddleWidth
+      ) {
+        const currentSpeed = Math.sqrt(ballSpeedX * ballSpeedX + ballSpeedY * ballSpeedY);
+        const newSpeed = Math.min(currentSpeed + speedIncrement, maxSpeed);
+        const speedRatio = newSpeed / currentSpeed;
 
-      ballSpeedY = -Math.abs(ballSpeedY) * speedRatio;
-      const hitPosition = (ballX + ballSize/2 - (bottomPaddleX + hPaddleWidth/2)) / (hPaddleWidth/2);
-      ballSpeedX = newSpeed * hitPosition * 0.8;
+        ballSpeedY = -Math.abs(ballSpeedY) * speedRatio;
+        const hitPosition = (ballX + ballSize/2 - (bottomPaddleX + currentBottomPaddleWidth/2)) / (currentBottomPaddleWidth/2);
+        ballSpeedX = newSpeed * hitPosition * 0.8;
 
-      ballY = bottomPaddleY - ballSize;
+        ballY = bottomPaddleY - ballSize;
 
-      // Enregistrer que le joueur du bas a touché la balle en dernier
-      lastPlayerTouched = 'bottom';
+        // Enregistrer que le joueur du bas a touché la balle en dernier
+        lastPlayerTouched = 'bottom';
+      }
+    }
+    
+    // Power-up logic (only if enabled)
+    if (powerupsEnabled && gameContainer) {
+      const now = performance.now();
+      
+      // Generate a new collectible if none exists and cooldown has passed
+      if (!powerupActive && !collectibleElement && now - lastPowerupTime > powerupCooldown) {
+        // 1% chance to spawn a power-up collectible
+        if (Math.random() < 0.01) {
+          // Create collectible at random position
+          collectibleElement = document.createElement('div');
+          collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
+          collectibleElement.style.width = '25px';
+          collectibleElement.style.height = '25px';
+          collectibleElement.style.backgroundColor = '#00ff00';
+          collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
+          collectibleElement.style.zIndex = '20';
+          collectibleElement.style.pointerEvents = 'none';
+          
+          // Random position within safe boundaries
+          collectibleX = 100 + Math.random() * (containerWidth - 200);
+          collectibleY = 100 + Math.random() * (containerHeight - 200);
+          
+          collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
+          gameContainer.appendChild(collectibleElement);
+          lastPowerupTime = now;
+        }
+      }
+      
+      // Check for collision between ball and collectible
+      if (collectibleElement) {
+        const ballRadius = ballSize / 2;
+        const collectibleRadius = 12.5; // Half of the 25px width
+        
+        const dx = (ballX + ballRadius) - (collectibleX + collectibleRadius);
+        const dy = (ballY + ballRadius) - (collectibleY + collectibleRadius);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < ballRadius + collectibleRadius) {
+          // Collision detected - activate power-up for the last player who touched the ball
+          if (lastPlayerTouched) {
+            powerupActive = true;
+            powerupAffectedPaddle = lastPlayerTouched;
+            
+            // Remove the collectible
+            if (collectibleElement && collectibleElement.parentNode) {
+              gameContainer.removeChild(collectibleElement);
+              collectibleElement = null;
+            }
+            
+            // Create power-up notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-4 py-2 rounded-md z-50';
+            
+            // Determine which player got the power-up
+            let playerText = "";
+            switch(powerupAffectedPaddle) {
+              case 'left': playerText = "Player 1"; break;
+              case 'right': playerText = "Player 2"; break;
+              case 'top': playerText = "Player 3"; break;
+              case 'bottom': playerText = "Player 4"; break;
+            }
+            
+            notification.textContent = `Giant Paddle (${playerText})`;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 2 seconds
+            setTimeout(() => {
+              document.body.removeChild(notification);
+            }, 2000);
+            
+            // End power-up after duration
+            powerupTimer = window.setTimeout(() => {
+              powerupActive = false;
+              powerupAffectedPaddle = null;
+              powerupTimer = null;
+            }, powerupDuration);
+          }
+        }
+      }
+    } else if (collectibleElement && collectibleElement.parentNode && gameContainer) {
+      // Clean up collectible if power-ups are disabled
+      gameContainer.removeChild(collectibleElement);
+      collectibleElement = null;
     }
     
     // Scoring and wall collisions - NOUVELLE LOGIQUE
@@ -617,7 +843,7 @@ function setupPaddleMovement() {
         ballY <= 0 || ballY + ballSize >= containerHeight) {
       
       // Attribution des points au dernier joueur qui a touché la balle
-      if (lastPlayerTouched && lastPlayerTouched !== '') {
+      if (lastPlayerTouched) {
         switch (lastPlayerTouched) {
           case 'left':
             leftScore++;
@@ -690,23 +916,54 @@ function setupPaddleMovement() {
     const deltaTime = timestamp - lastTime;
     lastTime = timestamp;
     
-    // Prevent spiral of death with large delays (e.g., tab switch)
+    // Prevent spiral of death with large delays
     const cappedDeltaTime = Math.min(deltaTime, 50);
     accumulator += cappedDeltaTime;
     
-    // Update physics at fixed time steps for consistency
+    // Update physics at fixed time steps
     while (accumulator >= fixedTimeStep) {
       updatePhysics();
       if (gameOver) break;
       accumulator -= fixedTimeStep;
     }
     
-    // Update DOM elements only once per frame
-    leftPaddle!.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`; // Ajout de !
-    rightPaddle!.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`; // Ajout de !
-    topPaddle!.style.transform = `translate3d(${pendingTopPaddleX}px, 0, 0)`; // Ajout de !
-    bottomPaddle!.style.transform = `translate3d(${pendingBottomPaddleX}px, 0, 0)`; // Ajout de !
-    ball!.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`; // Ajout de !
+    // Update DOM elements with proper size based on power-up state
+    if (leftPaddle && rightPaddle && topPaddle && bottomPaddle && ball) {
+      // Apply left paddle height and position
+      if (powerupActive && powerupAffectedPaddle === 'left') {
+        leftPaddle.style.height = `${giantVPaddleHeight}px`;
+      } else {
+        leftPaddle.style.height = `${normalVPaddleHeight}px`;
+      }
+      leftPaddle.style.transform = `translate3d(0, ${pendingLeftPaddleY}px, 0)`;
+      
+      // Apply right paddle height and position
+      if (powerupActive && powerupAffectedPaddle === 'right') {
+        rightPaddle.style.height = `${giantVPaddleHeight}px`;
+      } else {
+        rightPaddle.style.height = `${normalVPaddleHeight}px`;
+      }
+      rightPaddle.style.transform = `translate3d(0, ${pendingRightPaddleY}px, 0)`;
+      
+      // Apply top paddle width and position
+      if (powerupActive && powerupAffectedPaddle === 'top') {
+        topPaddle.style.width = `${giantHPaddleWidth}px`;
+      } else {
+        topPaddle.style.width = `${normalHPaddleWidth}px`;
+      }
+      topPaddle.style.transform = `translate3d(${pendingTopPaddleX}px, 0, 0)`;
+      
+      // Apply bottom paddle width and position
+      if (powerupActive && powerupAffectedPaddle === 'bottom') {
+        bottomPaddle.style.width = `${giantHPaddleWidth}px`;
+      } else {
+        bottomPaddle.style.width = `${normalHPaddleWidth}px`;
+      }
+      bottomPaddle.style.transform = `translate3d(${pendingBottomPaddleX}px, 0, 0)`;
+      
+      // Update ball position
+      ball.style.transform = `translate3d(${pendingBallX}px, ${pendingBallY}px, 0)`;
+    }
     
     // Continue the game loop
     if (!gameOver) {
@@ -715,7 +972,8 @@ function setupPaddleMovement() {
   }
   
   // Start the game loop
-  gameLoop(0);
+  lastTime = performance.now();
+  gameLoop(lastTime);
   
   return { cleanup, gameOverPromise };
 }

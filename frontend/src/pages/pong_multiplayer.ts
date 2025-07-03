@@ -199,7 +199,7 @@ export function PongMultiplayerMenuPage(): HTMLElement {
 // Page du jeu
 export function PongMultiplayerGamePage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'Parent p-5';
+  element.className = 'Parent p-5 flex flex-col items-center';
   
   // Charger les paramètres
   let settings: PongMultiplayerSettings = {

@@ -336,7 +336,7 @@ export function PongGamePage(): HTMLElement {
       if (!isTournamentMatch) {
         // Si ce n'est pas un match valide, nettoyer le localStorage
         localStorage.removeItem('currentTournamentMatch');
-        console.log('Match de tournoi invalide détecté et nettoyé');
+        //console.log('Match de tournoi invalide détecté et nettoyé');
       }
     } catch (e) {
       // En cas d'erreur de parsing, nettoyer

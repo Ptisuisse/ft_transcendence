@@ -117,7 +117,7 @@ export function LoginPage(): HTMLElement {
   (window as any).handleCredentialResponse = (response: any) => {
     // Force le bouton à se réafficher si besoin
     gIdSignin.style.display = 'block';
-    console.log('[Login] handleCredentialResponse called', response);
+    //console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
     fetch('api/auth/google', {
@@ -126,11 +126,11 @@ export function LoginPage(): HTMLElement {
       body: JSON.stringify({ jwt })
     })
       .then(res => {
-        console.log('[Login] Backend responded to /api/auth/google', res);
+        //console.log('[Login] Backend responded to /api/auth/google', res);
         return res.json();
       })
       .then(async data => {
-        console.log('[Login] Data received from backend:', data);
+        //console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
         if (data && data.token && data.name && data.picture) {
           // On a bien reçu les infos, on lance la 2FA

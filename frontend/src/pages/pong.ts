@@ -398,8 +398,9 @@ export function PongGamePage(): HTMLElement {
         
         // Si c'est un match de tournoi, mettre à jour le tournoi avec le gagnant
         const matchData = localStorage.getItem('currentTournamentMatch');
-        const matchAborted = localStorage.getItem('matchAborted');
-        
+        const matchAbortedStr = localStorage.getItem('matchAborted');
+        const matchAborted = matchAbortedStr ? JSON.parse(matchAbortedStr).aborted : false;
+
         // Ne pas mettre à jour le tournoi si le match a été abandonné
         if (matchData && !matchAborted) {
           try {
@@ -427,9 +428,7 @@ export function PongGamePage(): HTMLElement {
               );
               
               // Effacer les données du match actuel après un délai
-              setTimeout(() => {
-                localStorage.removeItem('currentTournamentMatch');
-              }, 2000);
+              localStorage.removeItem('currentTournamentMatch');
             }
           } catch (e) {
             console.error('Error updating tournament with winner', e);
@@ -628,9 +627,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   
   // Précalculer des valeurs utilisées fréquemment
   const paddleTop = 0;
-  // const paddleBottom = containerHeight - paddleHeight; // This variable is no longer needed
-  // Remove this unused variable
-  // const ballRight = containerWidth - ballSize;  
   const ballBottom = containerHeight - ballSize;
   const leftPaddleX = 25;
   const rightPaddleX = containerWidth - 25;
@@ -1035,34 +1031,5 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   // Start the game loop
   animationFrameId = requestAnimationFrame(gameLoop);
   
-  // Dans la fonction setupPaddleMovement(), après l'initialisation des variables
-  setTimeout(() => {
-    if (powerupsEnabled && gameContainer && !collectibleElement) {
-      // Force create a test collectible
-      collectibleElement = document.createElement('div');
-      collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
-      collectibleElement.style.width = '25px';
-      collectibleElement.style.height = '25px';
-      collectibleElement.style.backgroundColor = '#00ff00';
-      collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
-      collectibleElement.style.zIndex = '20'; // Valeur plus élevée que les autres éléments
-      collectibleElement.style.pointerEvents = 'none'; // Éviter d'interférer avec les contrôles
-      
-      // Position au centre pour être sûr qu'il est visible
-      collectibleX = containerWidth / 2;
-      collectibleY = containerHeight / 2;
-      
-      collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
-      gameContainer.appendChild(collectibleElement);
-      console.log('Test collectible created!');
-    }
-  }, 1000);
-  
   return { cleanup, gameOverPromise };
 }
-
-// Ajoutez ces traductions dans votre fichier i18n.ts si elles n'existent pas déjà
-/*
-LeftPlayerWins: 'Joueur Gauche Gagne',
-RightPlayerWins: 'Joueur Droite Gagne',
-*/

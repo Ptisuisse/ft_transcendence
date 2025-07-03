@@ -263,6 +263,9 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
 
     // Fermer la modale
     document.body.removeChild(modalOverlay);
+
+    localStorage.removeItem('matchAborted');
+    localStorage.setItem('tournamentConfig', JSON.stringify(config));
   });
 
   buttonsContainer.appendChild(backBtn);
@@ -428,11 +431,14 @@ function startTournamentMatch(roundIndex: number, matchIndex: number, player1: T
     matchIndex,
     player1,
     player2,
-    source: 'tournament' // Ajout d'une propriété source
+    source: 'tournament'
   };
   
   // Sauvegarder le match en cours dans localStorage
   localStorage.setItem('currentTournamentMatch', JSON.stringify(currentMatch));
+  
+  // Nettoyer l'indicateur d'abandon de match précédent
+  localStorage.removeItem('matchAborted');
   
   // Naviguer vers le menu de personnalisation de Pong
   navigateTo('/pong');

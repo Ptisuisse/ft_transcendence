@@ -279,7 +279,7 @@ export function PongMenuPage(): HTMLElement {
 // Page du jeu
 export function PongGamePage(): HTMLElement {
   const element = document.createElement('div');
-  element.className = 'Parent p-5';
+  element.className = 'Parent p-5 flex flex-col items-center';
   
   // Make game wrapper responsive
   const gameWrapper = document.createElement('div');

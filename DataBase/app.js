@@ -8,7 +8,7 @@ const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CR
         console.error(err.message);
         return;
     }
-    console.log('Connected to the SQLite database.');
+    //console.log('Connected to the SQLite database.');
 
     // Création d'une table users simple : id, username, email
     sql = 'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, email TEXT NOT NULL UNIQUE)';
@@ -17,7 +17,7 @@ const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CR
             console.error("Error creating table users:", err.message);
             return;
         }
-        console.log("Table 'users' created or already exists.");
+        //console.log("Table 'users' created or already exists.");
     });
 });
 
@@ -70,7 +70,7 @@ fastify.get('/users/:email', async (request, reply) => {
 // Route pour lister tous les utilisateurs (seulement id, username, email)
 fastify.get('/users', async (request, reply) => {
     db.all('SELECT id, username, email FROM users', [], (err, rows) => {
-        console.log('Résultat SQL /users:', rows);
+        //console.log('Résultat SQL /users:', rows);
         if (err) {
             return reply.code(500).send({ ok: false, message: 'DB error', error: err.message });
         }
@@ -84,5 +84,5 @@ fastify.listen({ port: 4000, host: '0.0.0.0' }, (err, address) => {
         console.error(err);
         process.exit(1);
     }
-    console.log(`DB API listening on ${address}`);
+    //console.log(`DB API listening on ${address}`);
 });

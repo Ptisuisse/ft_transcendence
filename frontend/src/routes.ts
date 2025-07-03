@@ -45,7 +45,7 @@ export const navigateTo = (url: string) => {
       localStorage.removeItem('matchAborted');
     }, 100);
     
-    console.log('Match de tournoi annulé - navigation hors contexte');
+    //console.log('Match de tournoi annulé - navigation hors contexte');
   }
   
   history.pushState(null, "", url);

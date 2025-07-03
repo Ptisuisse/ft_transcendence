@@ -95,9 +95,12 @@ export function PongTournamentPage(): HTMLElement {
         // Replace the existing buttons with just the new tournament button
         buttonsContainer.innerHTML = '';
         buttonsContainer.appendChild(newTournamentBtn);
-        
-        // Add the back to menu button
         buttonsContainer.appendChild(backToMenuBtn);
+
+        // Supprimer le titre principal de la page ("Création de tournoi")
+        if (pageTitle.parentNode) {
+          pageTitle.parentNode.removeChild(pageTitle);
+        }
       } else {
         // Tournament is still in progress, show the bracket
         const bracketContainer = createTournamentBracket(tournamentConfig);
@@ -229,7 +232,7 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
   backBtn.textContent = t('BackToMenu');
   backBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
-    showPlayerCountModal(tournamentSection);
+    navigateTo('https://localhost'); // Redirige vers le menu principal
   });
 
   const startTournamentBtn = document.createElement('button');
@@ -534,23 +537,17 @@ function createWinnerCelebration(winner: TournamentPlayer): HTMLElement {
   trophyIcon.innerHTML = '🏆';
   celebrationContainer.appendChild(trophyIcon);
 
-  // Add congratulation title
-  const congratsTitle = document.createElement('h2');
-  congratsTitle.className = 'text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4 md:mb-6';
-  congratsTitle.textContent = t('TitleTournament');
-  celebrationContainer.appendChild(congratsTitle);
+  // Add winner title (use translation)
+  const winnerTitle = document.createElement('h2');
+  winnerTitle.className = 'text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600 mb-4 md:mb-6';
+  winnerTitle.textContent = t('Winner');
+  celebrationContainer.appendChild(winnerTitle);
 
   // Winner name
   const winnerName = document.createElement('div');
   winnerName.className = 'text-3xl md:text-5xl font-extrabold text-white mb-6 md:mb-8';
   winnerName.textContent = winner.nickname;
   celebrationContainer.appendChild(winnerName);
-
-  // Add celebratory message
-  const celebMessage = document.createElement('p');
-  celebMessage.className = 'text-lg md:text-xl text-gray-300 mb-6 md:mb-8 text-center max-w-md';
-  celebMessage.textContent = t('TournamentRules');
-  celebrationContainer.appendChild(celebMessage);
 
   return celebrationContainer;
 }

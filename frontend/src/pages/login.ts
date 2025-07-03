@@ -1,4 +1,13 @@
+import { getCurrentLang } from '../components/navbar.ts';
+import { translations } from '../i18n.ts';
 import '../style.css';
+
+// Helper function for translation
+function t(key: string): string {
+  const lang = getCurrentLang();
+  const langTranslations = translations[lang as keyof typeof translations] || translations.en;
+  return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
+}
 
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
@@ -14,7 +23,7 @@ export function LoginPage(): HTMLElement {
   // Titre
   const title = document.createElement('h2');
   title.className = 'text-3xl font-bold text-white mb-8';
-  title.innerText = 'Login';
+  title.innerText = t('login');
 
   // Google onload
   const gIdOnload = document.createElement('div');
@@ -40,7 +49,7 @@ export function LoginPage(): HTMLElement {
   const statusMessage = document.createElement('p');
   statusMessage.id = 'status-message';
   statusMessage.className = 'text-white mt-4';
-  statusMessage.innerText = 'Waiting for authentication...';
+  statusMessage.innerText = t('WaitingForAuth');
 
   // Ajout des éléments au container
   container.appendChild(title);
@@ -108,7 +117,7 @@ export function LoginPage(): HTMLElement {
   (window as any).handleCredentialResponse = (response: any) => {
     // Force le bouton à se réafficher si besoin
     gIdSignin.style.display = 'block';
-    console.log('[Login] handleCredentialResponse called', response);
+    //console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
     fetch('api/auth/google', {
@@ -117,11 +126,11 @@ export function LoginPage(): HTMLElement {
       body: JSON.stringify({ jwt })
     })
       .then(res => {
-        console.log('[Login] Backend responded to /api/auth/google', res);
+        //console.log('[Login] Backend responded to /api/auth/google', res);
         return res.json();
       })
       .then(async data => {
-        console.log('[Login] Data received from backend:', data);
+        //console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
         if (data && data.token && data.name && data.picture) {
           // On a bien reçu les infos, on lance la 2FA
@@ -132,11 +141,11 @@ export function LoginPage(): HTMLElement {
             email = payload.email;
           } catch (e) {}
           if (!email) {
-            statusMessage.innerText = 'Erreur: email introuvable dans le token.';
+            statusMessage.innerText = t('EmailNotFoundInToken');
             return;
           }
           // Envoie le code 2FA
-          statusMessage.innerText = 'Envoi du code de vérification...';
+          statusMessage.innerText = t('Sending2FACode');
           await fetch('/api/auth/2fa/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -150,19 +159,19 @@ export function LoginPage(): HTMLElement {
           codeForm.className = 'flex flex-col items-center mt-4';
           const codeInput = document.createElement('input');
           codeInput.type = 'text';
-          codeInput.placeholder = 'Code reçu par email';
+          codeInput.placeholder = t('Placeholder2FACode');
           codeInput.className = 'mb-2 px-4 py-2 rounded text-black';
           const codeBtn = document.createElement('button');
           codeBtn.type = 'submit';
-          codeBtn.innerText = 'Valider le code';
+          codeBtn.innerText = t('Validate2FACode');
           codeBtn.className = 'px-4 py-2 bg-indigo-600 text-white rounded';
           codeForm.appendChild(codeInput);
           codeForm.appendChild(codeBtn);
           container.appendChild(codeForm);
-          statusMessage.innerText = 'Un code a été envoyé à votre email.';
+          statusMessage.innerText = t('Sent2FACode');
           codeForm.onsubmit = async (e) => {
             e.preventDefault();
-            statusMessage.innerText = 'Vérification du code...';
+            statusMessage.innerText = t('Verifying2FACode');
             const code = codeInput.value.trim();
             if (!code) return;
             const res = await fetch('/api/auth/2fa/verify', {
@@ -177,13 +186,13 @@ export function LoginPage(): HTMLElement {
               window.history.pushState(null, '', '/');
               if (typeof window.renderPage === 'function') window.renderPage();
             } else {
-              statusMessage.innerText = verify.message || 'Code invalide.';
+              statusMessage.innerText = verify.message || t('Invalid2FACode');
             }
           };
         }
       })
       .catch(error => {
-        statusMessage.innerText = 'Authentication failed.';
+        statusMessage.innerText = t('AuthFailed');
         gIdSignin.style.display = 'block';
         console.error('[Login] Erreur lors de lenvoi au backend:', error);
       });

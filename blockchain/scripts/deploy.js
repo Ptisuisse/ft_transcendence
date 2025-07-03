@@ -3,16 +3,13 @@ const hre = require("hardhat");
 
 async function main() {
   const TournamentScores = await hre.ethers.getContractFactory("TournamentScores");
-  const tournamentScores = await TournamentScores.deploy();
-
-  await tournamentScores.waitForDeployment();
-
-  console.log("TournamentScores deployed to:", tournamentScores.target);
+  const contract = await TournamentScores.deploy();
+  await contract.waitForDeployment();
+  // Ethers v6: l'adresse du contrat est dans contract.target
+  console.log("TournamentScores deployed to:", contract.target);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

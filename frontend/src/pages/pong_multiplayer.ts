@@ -564,11 +564,14 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
   let powerupDuration = 5000; // 5 seconds
   let lastPowerupTime = 0;
   let powerupCooldown = 500; // 0.5 seconds
-  
+
   // Collectible state
   let collectibleElement: HTMLDivElement | null = null;
   let collectibleX = 0;
   let collectibleY = 0;
+  // Taille du collectible en pourcentage de la largeur du conteneur
+  const collectibleSizePercent = 0.03; // 3% de la largeur du conteneur
+  let collectibleSize = containerWidth * collectibleSizePercent;
   
   // Resize observer to handle responsive updates
   const resizeObserver = new ResizeObserver((entries) => {
@@ -607,6 +610,9 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
         ballSpeedX *= widthRatio;
         ballSpeedY *= heightRatio;
         maxSpeed = initialSpeed * 2.5;
+        
+        // Update collectible size
+        collectibleSize = containerWidth * collectibleSizePercent;
         
         // Apply updates to DOM elements
         applyChanges();
@@ -914,8 +920,8 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
           // Create collectible at random position
           collectibleElement = document.createElement('div');
           collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
-          collectibleElement.style.width = '25px';
-          collectibleElement.style.height = '25px';
+          collectibleElement.style.width = `${collectibleSize}px`;
+          collectibleElement.style.height = `${collectibleSize}px`;
           collectibleElement.style.backgroundColor = '#00ff00';
           collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
           collectibleElement.style.zIndex = '20';
@@ -934,7 +940,7 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
       // Check for collision between ball and collectible
       if (collectibleElement) {
         const ballRadius = ballSize / 2;
-        const collectibleRadius = 12.5; // Half of the 25px width
+        const collectibleRadius = collectibleSize / 2; // Utiliser la taille dynamique
         
         const dx = (ballX + ballRadius) - (collectibleX + collectibleRadius);
         const dy = (ballY + ballRadius) - (collectibleY + collectibleRadius);
@@ -1053,8 +1059,8 @@ function setupPaddleMovement(powerupsEnabled: boolean = false) {
     ballY = containerHeight / 2 - ballSize / 2;
     
     // Choose random direction for ball without using unused angle variable
-    ballSpeedX = Math.random() > 0.5 ? initialSpeed : -initialSpeed;
-    ballSpeedY = Math.random() > 0.5 ? initialSpeed : -initialSpeed;
+    ballSpeedX = Math.random() > 0.5 ? 0.5 : -0.5;
+    ballSpeedY = Math.random() > 0.5 ? 0.5 : -0.5;
     
     // Ensure minimum velocity on X and Y axes
     if (Math.abs(ballSpeedX) < 0.5) ballSpeedX = ballSpeedX > 0 ? 0.5 : -0.5;

@@ -1,3 +1,5 @@
+import { getCurrentLang } from '../components/navbar.ts';
+import { translations } from '../i18n.ts';
 import '../style.css';
 
 interface CardData {
@@ -6,6 +8,13 @@ interface CardData {
     contributions: string[];
     classe: string;
     borderStart: string;
+}
+
+// Helper function for translation
+function t(key: string): string {
+  const lang = getCurrentLang();
+  const langTranslations = translations[lang as keyof typeof translations] || translations.en;
+  return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
 }
 
 function ProfilData(data: CardData): HTMLElement {
@@ -56,7 +65,7 @@ function ProfilData(data: CardData): HTMLElement {
 
     const contributionsTitle = document.createElement('p');
     contributionsTitle.className = 'text-purple-400 font-semibold mb-2';
-    contributionsTitle.textContent = 'Contributions:';
+    contributionsTitle.textContent = t('Contributions');
     textBlock.appendChild(contributionsTitle);
 
     const contributionsList = document.createElement('ul');
@@ -69,7 +78,7 @@ function ProfilData(data: CardData): HTMLElement {
         bullet.className = 'mr-3 inline-block w-1.5 h-1.5 bg-pink-400 rounded-full flex-shrink-0';
         listItem.appendChild(bullet);
         
-        const textNode = document.createTextNode(contribText);
+        const textNode = document.createTextNode(t(contribText));
         listItem.appendChild(textNode);
         contributionsList.appendChild(listItem);
     });
@@ -92,7 +101,7 @@ export function TeamPage(): HTMLElement {
         [filter:drop-shadow(0_1px_1px_rgba(0,0,0,0.5))_drop-shadow(0_2px_2px_rgba(0,0,0,0.3))]
         md:text-6xl
     `;
-    pageTitle.textContent = 'Meet the Team';
+    pageTitle.textContent = t('TitleTeam');
     mainContainer.appendChild(pageTitle);
 
     const cardsWrapper = document.createElement('div');
@@ -103,9 +112,9 @@ export function TeamPage(): HTMLElement {
             imagesrc: 'https://cdn.intra.42.fr/users/b4ece226b775fafa122c3b77daba52b7/lvan-slu.jpg',
             name: 'lvan-slu',
             contributions: [
-                'Frontend Development',
-                'UI/UX Design for Team Page',
-                'Docker Configuration'
+                'lvanSluContrib1',
+                'lvanSluContrib2',
+                'lvanSluContrib3'
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-0 translate-y-[-10%]',
             borderStart: '0deg'
@@ -114,9 +123,9 @@ export function TeamPage(): HTMLElement {
             imagesrc: 'https://cdn.intra.42.fr/users/e983d6f2f963251a6d749de8f454998b/ppitzini.jpg',
             name: 'ppitzini',
             contributions: [
-                'Backend Architecture',
-                'Database Management',
-                'API Endpoints'
+                'ppitziniContrib1',
+                'ppitziniContrib2',
+                'ppitziniContrib3'
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-10%] translate-y-[-10%]',
             borderStart: '120deg'
@@ -125,9 +134,9 @@ export function TeamPage(): HTMLElement {
             imagesrc: 'https://cdn.intra.42.fr/users/8b9c58a0398280e28a4ecd1ec9d167db/pirulenc.jpg',
             name: 'pirulenc',
             contributions: [
-                'Game Logic Implementation',
-                'Real-time Communication (WebSockets)',
-                'Security Hardening'
+                'pirulencContrib1',
+                'pirulencContrib2',
+                'pirulencContrib3'
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-15%] translate-y-[-10%]',
             borderStart: '240deg'

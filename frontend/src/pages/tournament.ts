@@ -229,7 +229,7 @@ function showPlayerNamesModal(tournamentSection: HTMLElement, playerCount: 4 | 8
   backBtn.textContent = t('BackToMenu');
   backBtn.addEventListener('click', () => {
     document.body.removeChild(modalOverlay);
-    showPlayerCountModal(tournamentSection);
+    navigateTo('https://localhost'); // Redirige vers le menu principal
   });
 
   const startTournamentBtn = document.createElement('button');

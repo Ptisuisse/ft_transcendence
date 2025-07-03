@@ -10,7 +10,7 @@ function cleanupOrphanedTournamentMatches() {
       // Si match de tournoi sans source valide ou ancien
       if (!match.source || match.source !== 'tournament') {
         localStorage.removeItem('currentTournamentMatch');
-        console.log('Match de tournoi orphelin nettoyé au démarrage');
+        //console.log('Match de tournoi orphelin nettoyé au démarrage');
       }
     } catch (e) {
       localStorage.removeItem('currentTournamentMatch');

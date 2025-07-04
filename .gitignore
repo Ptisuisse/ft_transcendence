@@ -1,6 +1,5 @@
 # Global .gitignore for all subprojects
 
-.env
 # Logs
 logs
 *.log
@@ -25,9 +24,6 @@ DataBase/dist
 DataBase/dist-ssr
 
 # Environment variables
-.env
-*.env
-backend/.env
 
 # Runtime data
 pids

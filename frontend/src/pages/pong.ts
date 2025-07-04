@@ -464,6 +464,43 @@ export function PongGamePage(): HTMLElement {
               winnerPlayer = currentMatch.player2;
             }
             if (winnerPlayer) {
+              // Récupérer le score réel du match et l'envoyer à la blockchain
+              const leftScoreElement = document.getElementById('left-score');
+              const rightScoreElement = document.getElementById('right-score');
+              let leftScore = 0;
+              let rightScore = 0;
+              if (leftScoreElement && rightScoreElement) {
+                leftScore = parseInt(leftScoreElement.textContent || '0', 10);
+                rightScore = parseInt(rightScoreElement.textContent || '0', 10);
+              }
+              // Format du score: "3-2" (exemple)
+              const scoreValue = Math.max(leftScore, rightScore);
+              // Envoi à la blockchain via l'API backend
+              fetch('/api/score/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  winner: winnerPlayer.nickname,
+                  score: scoreValue
+                })
+              })
+                .then(async (res) => {
+                  const data = await res.json().catch(() => ({}));
+                  console.log('[SCORE SUBMIT]', res.status, data);
+                  if (data && data.txHash) {
+                    const snowtraceUrl = `https://testnet.snowtrace.io/tx/${data.txHash}`;
+                    console.log(`[BLOCKCHAIN] Transaction hash: ${data.txHash}`);
+                    console.log(`[BLOCKCHAIN] Voir sur SnowTrace: ${snowtraceUrl}`);
+                    // Optionnel: afficher à l'utilisateur (UI)
+                  } else if (data && data.error) {
+                    console.error('[BLOCKCHAIN] Erreur backend:', data.error);
+                  } else {
+                    console.warn('[BLOCKCHAIN] Réponse inattendue:', data);
+                  }
+                })
+                .catch((err) => {
+                  console.error('[SCORE SUBMIT ERROR]', err);
+                });
               import('../pages/tournament').then(module => {
                 module.updateTournamentWithWinner(
                   tournamentConfig,

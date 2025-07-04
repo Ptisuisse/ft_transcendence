@@ -1,5 +1,6 @@
 
-up:
+up: deploy-blockchain
+	@echo "Deploying blockchain services ..."
 	@echo "Starting Docker services ..."
 	docker compose up -d --build
 
@@ -16,5 +17,8 @@ re: down up
 fclean: down
 
 default: up
+
+deploy-blockchain:
+	cd blockchain && ./deploy.sh
 
 .PHONY: up down fclean default

@@ -7,8 +7,8 @@ module.exports = async function (fastify, opts) {
   fastify.post('/api/score/submit', async (request, reply) => {
     try {
       console.log('[score/submit] body:', request.body);
-      const { winner, score } = request.body;
-      const txHash = await submitScore(score);
+      const { winner, score, scoreDetail } = request.body;
+      const txHash = await submitScore(score, winner, scoreDetail);
       console.log('[score/submit] txHash:', txHash);
       return { success: true, txHash, winner };
     } catch (err) {

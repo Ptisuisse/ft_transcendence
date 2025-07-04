@@ -20,7 +20,7 @@ contract TournamentScores {
         string memory scoreDetail
     ) public {
         scores.push(Score(msg.sender, score, block.timestamp, winnerName, scoreDetail));
-        emit ScoreSubmitted(msg.sender, score, block.timestamp, winnerName, scoreDetail);
+        emit ScoreSubmitted(winnerName, scoreDetail);
     }
 
     function getScore(uint256 index) public view returns (

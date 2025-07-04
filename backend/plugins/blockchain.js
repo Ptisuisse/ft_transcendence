@@ -8,7 +8,7 @@ const artifactPath = path.join(__dirname, '../abi/TournamentScores.json');
 const contractJson = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
 const abi = contractJson.abi;
 
-const CONTRACT_ADDRESS = '0x583923b6F2d22be12367E69AA6B9Eff8Ccb1a666'; // Adresse déployée
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;// Adresse déployée
 const PROVIDER_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
 const PRIVATE_KEY = process.env.PRIVATE_KEY; // Doit être dans ton .env
 
@@ -18,9 +18,17 @@ const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 // Fonction pour enregistrer un score
 async function submitScore(score) {
-  const tx = await contract.submitScore(score);
-  await tx.wait();
-  return tx.hash;
+  try {
+    console.log('[blockchain] submitScore called with:', score);
+    const tx = await contract.submitScore(score);
+    console.log('[blockchain] Transaction sent, hash:', tx.hash);
+    const receipt = await tx.wait();
+    console.log('[blockchain] Transaction mined, block:', receipt.blockNumber);
+    return tx.hash;
+  } catch (err) {
+    console.error('[blockchain] Error in submitScore:', err);
+    throw err;
+  }
 }
 
 // Récupérer le nombre de scores

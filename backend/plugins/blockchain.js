@@ -17,10 +17,10 @@ const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
 // Fonction pour enregistrer un score
-async function submitScore(score) {
+async function submitScore(score, winnerName, scoreDetail) {
   try {
-    console.log('[blockchain] submitScore called with:', score);
-    const tx = await contract.submitScore(score);
+    console.log('[blockchain] submitScore called with:', score, winnerName, scoreDetail);
+    const tx = await contract.submitScore(score, winnerName, scoreDetail);
     console.log('[blockchain] Transaction sent, hash:', tx.hash);
     const receipt = await tx.wait();
     console.log('[blockchain] Transaction mined, block:', receipt.blockNumber);

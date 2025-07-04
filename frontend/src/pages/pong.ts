@@ -412,7 +412,7 @@ export function PongGamePage(): HTMLElement {
     (element as any).__cleanupHandler = handleBeforeUnload;
 
     // Affichage du message de victoire
-    result.gameOverPromise.then((winner) => {
+    result.gameOverPromise.then(async (winner) => {
       let winnerText = '';
       // === Gestion du tournoi ===
       let winnerName = '';
@@ -475,13 +475,15 @@ export function PongGamePage(): HTMLElement {
               }
               // Format du score: "3-2" (exemple)
               const scoreValue = Math.max(leftScore, rightScore);
+              const scoreText = `${leftScore}-${rightScore}`;
               // Envoi à la blockchain via l'API backend
-              fetch('/api/score/submit', {
+              await fetch('/api/score/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  winner: winnerPlayer.nickname,
-                  score: scoreValue
+                  winner: winnerName,      // nom du gagnant (string)
+                  score: scoreValue,            // score numérique (number)
+                  scoreDetail: scoreText   // score détaillé, ex: "3-1" (string)
                 })
               })
                 .then(async (res) => {

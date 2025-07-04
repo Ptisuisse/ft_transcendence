@@ -42,6 +42,7 @@ module.exports = async function (fastify, opts) {
 
   // Route pour envoyer le code 2FA par email
   fastify.post('/auth/2fa/send', async function (request, reply) {
+<<<<<<< HEAD
     try {
       const { email } = request.body;
       if (!email) {
@@ -74,6 +75,35 @@ module.exports = async function (fastify, opts) {
       console.error("Erreur lors de l'envoi du code 2FA:", err);
       reply.code(500).send({ ok: false, message: "Erreur lors de l'envoi de l'email de vérification" });
     }
+=======
+    const { email } = request.body;
+    if (!email) {
+      return reply.code(400).send({ ok: false, message: 'Email requis' });
+    }
+    // Génère un code à 6 chiffres
+    const code = crypto.randomInt(100000, 1000000).toString();
+    // Stocke le code temporairement (5 min)
+    twoFACodes[email] = { code, expires: Date.now() + 5 * 60 * 1000 };
+
+    // Configure le transporteur nodemailer (exemple Gmail, à adapter)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+
+    // Envoie l'email
+    await transporter.sendMail({
+      from: process.env.MAIL_USER,
+      to: email,
+      subject: 'Votre code de connexion 2FA',
+      text: `Votre code de vérification est : ${code}`,
+    });
+
+    return { ok: true, message: 'Code envoyé par email' };
+>>>>>>> a999fbfb311da45b4e9af7e0c40c242d128f337b
   });
 
   // Route pour vérifier le code 2FA

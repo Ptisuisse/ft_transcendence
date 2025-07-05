@@ -374,6 +374,34 @@ export function PongGamePage(): HTMLElement {
   
   // Démarrer le jeu avec un léger délai pour laisser le DOM se mettre en place
   let cleanup: (() => void) | undefined;
+  // === Ajout overlay de chargement ===
+  // Création de l'overlay (masqué par défaut)
+  let loadingOverlay: HTMLDivElement | null = null;
+  if (isTournamentMatch) {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.style.position = 'fixed';
+    loadingOverlay.style.top = '0';
+    loadingOverlay.style.left = '0';
+    loadingOverlay.style.width = '100vw';
+    loadingOverlay.style.height = '100vh';
+    loadingOverlay.style.background = 'rgba(30, 30, 30, 0.7)';
+    loadingOverlay.style.display = 'none';
+    loadingOverlay.style.zIndex = '9999';
+    loadingOverlay.style.justifyContent = 'center';
+    loadingOverlay.style.alignItems = 'center';
+    loadingOverlay.style.pointerEvents = 'auto';
+    loadingOverlay.innerHTML = `
+      <div style="display:flex;justify-content:center;align-items:center;height:100vh;width:100vw;">
+        <svg class="animate-spin" style="height:64px;width:64px;color:#a855f7;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+  }
+  // ...existing code...
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
@@ -451,6 +479,21 @@ export function PongGamePage(): HTMLElement {
 
       // === Gestion du tournoi ===
       if (isTournamentMatch) {
+        // === Afficher l'overlay de chargement et bloquer navigation ===
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'flex';
+          // Désactiver tous les boutons et la navbar
+          document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+            (el as HTMLElement).setAttribute('disabled', 'true');
+            (el as HTMLElement).style.pointerEvents = 'none';
+          });
+          // Désactiver la navbar si elle existe
+          const navbar = document.querySelector('nav');
+          if (navbar) {
+            (navbar as HTMLElement).style.pointerEvents = 'none';
+            (navbar as HTMLElement).style.opacity = '0.5';
+          }
+        }
         try {
           const matchData = localStorage.getItem('currentTournamentMatch');
           const tournamentConfigRaw = localStorage.getItem('tournamentConfig');
@@ -507,6 +550,19 @@ export function PongGamePage(): HTMLElement {
                   winnerPlayer
                 );
                 localStorage.removeItem('currentTournamentMatch');
+                // === Retirer l'overlay et réactiver navigation ===
+                if (loadingOverlay) {
+                  loadingOverlay.style.display = 'none';
+                  document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+                    (el as HTMLElement).removeAttribute('disabled');
+                    (el as HTMLElement).style.pointerEvents = '';
+                  });
+                  const navbar = document.querySelector('nav');
+                  if (navbar) {
+                    (navbar as HTMLElement).style.pointerEvents = '';
+                    (navbar as HTMLElement).style.opacity = '';
+                  }
+                }
                 setTimeout(() => {
                   navigateTo('/pong/tournament');
                 }, 2000);
@@ -515,6 +571,19 @@ export function PongGamePage(): HTMLElement {
           }
         } catch (e) {
           console.error('Erreur lors de la mise à jour du tournoi:', e);
+          // === Retirer l'overlay même en cas d'erreur ===
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+            document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+              (el as HTMLElement).removeAttribute('disabled');
+              (el as HTMLElement).style.pointerEvents = '';
+            });
+            const navbar = document.querySelector('nav');
+            if (navbar) {
+              (navbar as HTMLElement).style.pointerEvents = '';
+              (navbar as HTMLElement).style.opacity = '';
+            }
+          }
         }
       }
     });
@@ -842,8 +911,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
           collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
           collectibleElement.style.zIndex = '20';
           collectibleElement.style.pointerEvents = 'none';
-          collectibleX = 100 + Math.random() * (containerWidth - 200);
-          collectibleY = 100 + Math.random() * (containerHeight - 200);
           collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
           gameContainer.appendChild(collectibleElement);
           lastPowerupTime = now;

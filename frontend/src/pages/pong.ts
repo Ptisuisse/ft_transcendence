@@ -464,7 +464,6 @@ export function PongGamePage(): HTMLElement {
               winnerPlayer = currentMatch.player2;
             }
             if (winnerPlayer) {
-              // Récupérer le score réel du match et l'envoyer à la blockchain
               const leftScoreElement = document.getElementById('left-score');
               const rightScoreElement = document.getElementById('right-score');
               let leftScore = 0;
@@ -473,17 +472,15 @@ export function PongGamePage(): HTMLElement {
                 leftScore = parseInt(leftScoreElement.textContent || '0', 10);
                 rightScore = parseInt(rightScoreElement.textContent || '0', 10);
               }
-              // Format du score: "3-2" (exemple)
               const scoreValue = Math.max(leftScore, rightScore);
               const scoreText = `${leftScore}-${rightScore}`;
-              // Envoi à la blockchain via l'API backend
               await fetch('/api/score/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  winner: winnerName,      // nom du gagnant (string)
-                  score: scoreValue,            // score numérique (number)
-                  scoreDetail: scoreText   // score détaillé, ex: "3-1" (string)
+                  winner: winnerName,
+                  score: scoreValue,
+                  scoreDetail: scoreText
                 })
               })
                 .then(async (res) => {
@@ -493,7 +490,6 @@ export function PongGamePage(): HTMLElement {
                     const snowtraceUrl = `https://testnet.snowtrace.io/tx/${data.txHash}`;
                     console.log(`[BLOCKCHAIN] Transaction hash: ${data.txHash}`);
                     console.log(`[BLOCKCHAIN] Voir sur SnowTrace: ${snowtraceUrl}`);
-                    // Optionnel: afficher à l'utilisateur (UI)
                   } else if (data && data.error) {
                     console.error('[BLOCKCHAIN] Erreur backend:', data.error);
                   } else {
@@ -524,19 +520,15 @@ export function PongGamePage(): HTMLElement {
     });
   }, 100);
   
-  // Ne retourner que l'élément HTML, pas de fonction de nettoyage
   return element;
 }
 
-// Legacy function for backwards compatibility
 export function PongPage(): HTMLElement {
   return PongMenuPage();
 }
 
-// Fonctions utilitaires modifiées pour utiliser les paramètres
 function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const scoreBoard = document.createElement('div');
-  // Make it responsive
   scoreBoard.className = 'flex justify-center items-center w-full max-w-[800px] mb-2 sm:mb-4 text-2xl sm:text-4xl font-bold';
   
   const leftScore = document.createElement('div');

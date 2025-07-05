@@ -412,7 +412,7 @@ export function PongGamePage(): HTMLElement {
     (element as any).__cleanupHandler = handleBeforeUnload;
 
     // Affichage du message de victoire
-    result.gameOverPromise.then((winner) => {
+    result.gameOverPromise.then(async (winner) => {
       let winnerText = '';
       // === Gestion du tournoi ===
       let winnerName = '';
@@ -464,6 +464,41 @@ export function PongGamePage(): HTMLElement {
               winnerPlayer = currentMatch.player2;
             }
             if (winnerPlayer) {
+              const leftScoreElement = document.getElementById('left-score');
+              const rightScoreElement = document.getElementById('right-score');
+              let leftScore = 0;
+              let rightScore = 0;
+              if (leftScoreElement && rightScoreElement) {
+                leftScore = parseInt(leftScoreElement.textContent || '0', 10);
+                rightScore = parseInt(rightScoreElement.textContent || '0', 10);
+              }
+              const scoreValue = Math.max(leftScore, rightScore);
+              const scoreText = `${leftScore}-${rightScore}`;
+              await fetch('/api/score/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  winner: winnerName,
+                  score: scoreValue,
+                  scoreDetail: scoreText
+                })
+              })
+                .then(async (res) => {
+                  const data = await res.json().catch(() => ({}));
+                  console.log('[SCORE SUBMIT]', res.status, data);
+                  if (data && data.txHash) {
+                    const snowtraceUrl = `https://testnet.snowtrace.io/tx/${data.txHash}`;
+                    console.log(`[BLOCKCHAIN] Transaction hash: ${data.txHash}`);
+                    console.log(`[BLOCKCHAIN] Voir sur SnowTrace: ${snowtraceUrl}`);
+                  } else if (data && data.error) {
+                    console.error('[BLOCKCHAIN] Erreur backend:', data.error);
+                  } else {
+                    console.warn('[BLOCKCHAIN] Réponse inattendue:', data);
+                  }
+                })
+                .catch((err) => {
+                  console.error('[SCORE SUBMIT ERROR]', err);
+                });
               import('../pages/tournament').then(module => {
                 module.updateTournamentWithWinner(
                   tournamentConfig,
@@ -485,19 +520,15 @@ export function PongGamePage(): HTMLElement {
     });
   }, 100);
   
-  // Ne retourner que l'élément HTML, pas de fonction de nettoyage
   return element;
 }
 
-// Legacy function for backwards compatibility
 export function PongPage(): HTMLElement {
   return PongMenuPage();
 }
 
-// Fonctions utilitaires modifiées pour utiliser les paramètres
 function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const scoreBoard = document.createElement('div');
-  // Make it responsive
   scoreBoard.className = 'flex justify-center items-center w-full max-w-[800px] mb-2 sm:mb-4 text-2xl sm:text-4xl font-bold';
   
   const leftScore = document.createElement('div');

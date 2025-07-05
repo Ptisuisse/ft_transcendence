@@ -595,7 +595,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   let normalPaddleHeight = paddleHeight;
   let giantPaddleHeight = paddleHeight * 2;
   let leftPaddleX = containerWidth * 0.0125;
-  let rightPaddleX = containerWidth * 0.9688;
+  let rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
   let leftPaddleY = (containerHeight - paddleHeight) / 2;
   let rightPaddleY = (containerHeight - paddleHeight) / 2;
   let paddleSpeed = containerWidth * 0.00625;
@@ -644,7 +644,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
         ballSize = containerWidth * ballSizePercent;
         collectibleSize = containerWidth * collectibleSizePercent;
         leftPaddleX = containerWidth * 0.0125;
-        rightPaddleX = containerWidth * 0.9688;
+        rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
         leftPaddleY *= heightRatio;
         rightPaddleY *= heightRatio;
         ballX *= widthRatio;
@@ -670,7 +670,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
       leftPaddle.style.transform = `translate3d(${leftPaddleX}px, ${pendingLeftPaddleY}px, 0)`;
       rightPaddle.style.width = `${paddleWidth}px`;
       rightPaddle.style.height = powerupActive && powerupAffectedPaddle === 'right' ? `${giantPaddleHeight}px` : `${normalPaddleHeight}px`;
-      rightPaddle.style.transform = `translate3d(${rightPaddleX - paddleWidth}px, ${pendingRightPaddleY}px, 0)`;
+      rightPaddle.style.transform = `translate3d(${rightPaddleX}px, ${pendingRightPaddleY}px, 0)`;
       if (collectibleElement) {
         collectibleElement.style.width = `${collectibleSize}px`;
         collectibleElement.style.height = `${collectibleSize}px`;

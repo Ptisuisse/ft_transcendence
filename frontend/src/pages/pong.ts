@@ -903,6 +903,10 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
       const now = performance.now();
       if (!powerupActive && !collectibleElement && now - lastPowerupTime > powerupCooldown) {
         if (Math.random() < 0.01) {
+          // Générer des coordonnées aléatoires pour le collectible
+          collectibleX = Math.random() * (containerWidth - collectibleSize);
+          collectibleY = Math.random() * (containerHeight - collectibleSize);
+          
           collectibleElement = document.createElement('div');
           collectibleElement.className = 'absolute rounded-full animate-pulse z-10';
           collectibleElement.style.width = `${collectibleSize}px`;

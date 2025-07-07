@@ -125,7 +125,9 @@ export function TeamPage(): HTMLElement {
             contributions: [
                 'ppitziniContrib1',
                 'ppitziniContrib2',
-                'ppitziniContrib3'
+                'ppitziniContrib3',
+                'ppitziniContrib4'
+
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-10%] translate-y-[-10%]',
             borderStart: '120deg'

@@ -123,6 +123,9 @@ export const translations = {
     pirulencContrib1: "Game Logic Implementation",
     pirulencContrib2: "Real-time Communication (WebSockets)",
     pirulencContrib3: "Security Hardening",
+    pirulencContrib4: "AI Implementation",
+    pirulencContrib5: "Tournament system with matchmaking",
+    pirulencContrib6: "Device-specific game mechanics management",
     //LoginPage
     WaitingForAuth: "Waiting for authentication...",
     EmailNotFoundInToken: "Error: email not found in token.",

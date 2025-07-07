@@ -136,7 +136,10 @@ export function TeamPage(): HTMLElement {
             contributions: [
                 'pirulencContrib1',
                 'pirulencContrib2',
-                'pirulencContrib3'
+                'pirulencContrib3',
+                'pirulencContrib4',
+                'pirulencContrib5',
+                'pirulencContrib6'
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-[-15%] translate-y-[-10%]',
             borderStart: '240deg'

@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 function authenticate(request, reply, done) {
   if (!JWT_SECRET) {
-    reply.code(500).send({ ok: false, message: 'JWT_SECRET is not configured on the server.' });
+    //reply.code(500).send({ ok: false, message: 'JWT_SECRET is not configured on the server.' });
     return done(new Error('JWT_SECRET is not configured on the server.'));
   }
   // Vérifie qu'on est bien dans une requête HTTP

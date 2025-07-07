@@ -82,7 +82,7 @@ export function PongMultiplayerMenuPage(): HTMLElement {
   
   const topPaddleLabel = document.createElement('p');
   topPaddleLabel.className = 'text-white mb-2';
-  topPaddleLabel.textContent = 'Top Paddle Color (Player 3 - O/P)';
+  topPaddleLabel.textContent = translations[getCurrentLang()].TopPaddleColor || 'Top Paddle Color (Player 3 - O/P)';
   topPaddleSection.appendChild(topPaddleLabel);
   
   const topPaddleColorPicker = document.createElement('input');
@@ -98,7 +98,7 @@ export function PongMultiplayerMenuPage(): HTMLElement {
   
   const bottomPaddleLabel = document.createElement('p');
   bottomPaddleLabel.className = 'text-white mb-2';
-  bottomPaddleLabel.textContent = 'Bottom Paddle Color (Player 4 - C/V)';
+  bottomPaddleLabel.textContent = translations[getCurrentLang()].BottomPaddleColor || 'Bottom Paddle Color (Player 4 - C/V)';
   bottomPaddleSection.appendChild(bottomPaddleLabel);
   
   const bottomPaddleColorPicker = document.createElement('input');

@@ -374,6 +374,34 @@ export function PongGamePage(): HTMLElement {
   
   // Démarrer le jeu avec un léger délai pour laisser le DOM se mettre en place
   let cleanup: (() => void) | undefined;
+  // === Ajout overlay de chargement ===
+  // Création de l'overlay (masqué par défaut)
+  let loadingOverlay: HTMLDivElement | null = null;
+  if (isTournamentMatch) {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.style.position = 'fixed';
+    loadingOverlay.style.top = '0';
+    loadingOverlay.style.left = '0';
+    loadingOverlay.style.width = '100vw';
+    loadingOverlay.style.height = '100vh';
+    loadingOverlay.style.background = 'rgba(30, 30, 30, 0.7)';
+    loadingOverlay.style.display = 'none';
+    loadingOverlay.style.zIndex = '9999';
+    loadingOverlay.style.justifyContent = 'center';
+    loadingOverlay.style.alignItems = 'center';
+    loadingOverlay.style.pointerEvents = 'auto';
+    loadingOverlay.innerHTML = `
+      <div style="display:flex;justify-content:center;align-items:center;height:100vh;width:100vw;">
+        <svg class="animate-spin" style="height:64px;width:64px;color:#a855f7;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+  }
+  // ...existing code...
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
@@ -412,7 +440,7 @@ export function PongGamePage(): HTMLElement {
     (element as any).__cleanupHandler = handleBeforeUnload;
 
     // Affichage du message de victoire
-    result.gameOverPromise.then((winner) => {
+    result.gameOverPromise.then(async (winner) => {
       let winnerText = '';
       // === Gestion du tournoi ===
       let winnerName = '';
@@ -451,6 +479,21 @@ export function PongGamePage(): HTMLElement {
 
       // === Gestion du tournoi ===
       if (isTournamentMatch) {
+        // === Afficher l'overlay de chargement et bloquer navigation ===
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'flex';
+          // Désactiver tous les boutons et la navbar
+          document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+            (el as HTMLElement).setAttribute('disabled', 'true');
+            (el as HTMLElement).style.pointerEvents = 'none';
+          });
+          // Désactiver la navbar si elle existe
+          const navbar = document.querySelector('nav');
+          if (navbar) {
+            (navbar as HTMLElement).style.pointerEvents = 'none';
+            (navbar as HTMLElement).style.opacity = '0.5';
+          }
+        }
         try {
           const matchData = localStorage.getItem('currentTournamentMatch');
           const tournamentConfigRaw = localStorage.getItem('tournamentConfig');
@@ -464,6 +507,41 @@ export function PongGamePage(): HTMLElement {
               winnerPlayer = currentMatch.player2;
             }
             if (winnerPlayer) {
+              const leftScoreElement = document.getElementById('left-score');
+              const rightScoreElement = document.getElementById('right-score');
+              let leftScore = 0;
+              let rightScore = 0;
+              if (leftScoreElement && rightScoreElement) {
+                leftScore = parseInt(leftScoreElement.textContent || '0', 10);
+                rightScore = parseInt(rightScoreElement.textContent || '0', 10);
+              }
+              const scoreValue = Math.max(leftScore, rightScore);
+              const scoreText = `${leftScore}-${rightScore}`;
+              await fetch('/api/score/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  winner: winnerName,
+                  score: scoreValue,
+                  scoreDetail: scoreText
+                })
+              })
+                .then(async (res) => {
+                  const data = await res.json().catch(() => ({}));
+                  console.log('[SCORE SUBMIT]', res.status, data);
+                  if (data && data.txHash) {
+                    const snowtraceUrl = `https://testnet.snowtrace.io/tx/${data.txHash}`;
+                    console.log(`[BLOCKCHAIN] Transaction hash: ${data.txHash}`);
+                    console.log(`[BLOCKCHAIN] Voir sur SnowTrace: ${snowtraceUrl}`);
+                  } else if (data && data.error) {
+                    console.error('[BLOCKCHAIN] Erreur backend:', data.error);
+                  } else {
+                    console.warn('[BLOCKCHAIN] Réponse inattendue:', data);
+                  }
+                })
+                .catch((err) => {
+                  console.error('[SCORE SUBMIT ERROR]', err);
+                });
               import('../pages/tournament').then(module => {
                 module.updateTournamentWithWinner(
                   tournamentConfig,
@@ -472,6 +550,19 @@ export function PongGamePage(): HTMLElement {
                   winnerPlayer
                 );
                 localStorage.removeItem('currentTournamentMatch');
+                // === Retirer l'overlay et réactiver navigation ===
+                if (loadingOverlay) {
+                  loadingOverlay.style.display = 'none';
+                  document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+                    (el as HTMLElement).removeAttribute('disabled');
+                    (el as HTMLElement).style.pointerEvents = '';
+                  });
+                  const navbar = document.querySelector('nav');
+                  if (navbar) {
+                    (navbar as HTMLElement).style.pointerEvents = '';
+                    (navbar as HTMLElement).style.opacity = '';
+                  }
+                }
                 setTimeout(() => {
                   navigateTo('/pong/tournament');
                 }, 2000);
@@ -480,24 +571,33 @@ export function PongGamePage(): HTMLElement {
           }
         } catch (e) {
           console.error('Erreur lors de la mise à jour du tournoi:', e);
+          // === Retirer l'overlay même en cas d'erreur ===
+          if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+            document.querySelectorAll('button, a, [tabindex]').forEach(el => {
+              (el as HTMLElement).removeAttribute('disabled');
+              (el as HTMLElement).style.pointerEvents = '';
+            });
+            const navbar = document.querySelector('nav');
+            if (navbar) {
+              (navbar as HTMLElement).style.pointerEvents = '';
+              (navbar as HTMLElement).style.opacity = '';
+            }
+          }
         }
       }
     });
   }, 100);
   
-  // Ne retourner que l'élément HTML, pas de fonction de nettoyage
   return element;
 }
 
-// Legacy function for backwards compatibility
 export function PongPage(): HTMLElement {
   return PongMenuPage();
 }
 
-// Fonctions utilitaires modifiées pour utiliser les paramètres
 function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const scoreBoard = document.createElement('div');
-  // Make it responsive
   scoreBoard.className = 'flex justify-center items-center w-full max-w-[800px] mb-2 sm:mb-4 text-2xl sm:text-4xl font-bold';
   
   const leftScore = document.createElement('div');
@@ -595,7 +695,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   let normalPaddleHeight = paddleHeight;
   let giantPaddleHeight = paddleHeight * 2;
   let leftPaddleX = containerWidth * 0.0125;
-  let rightPaddleX = containerWidth * 0.9688;
+  let rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
   let leftPaddleY = (containerHeight - paddleHeight) / 2;
   let rightPaddleY = (containerHeight - paddleHeight) / 2;
   let paddleSpeed = containerWidth * 0.00625;
@@ -644,7 +744,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
         ballSize = containerWidth * ballSizePercent;
         collectibleSize = containerWidth * collectibleSizePercent;
         leftPaddleX = containerWidth * 0.0125;
-        rightPaddleX = containerWidth * 0.9688;
+        rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
         leftPaddleY *= heightRatio;
         rightPaddleY *= heightRatio;
         ballX *= widthRatio;
@@ -670,7 +770,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
       leftPaddle.style.transform = `translate3d(${leftPaddleX}px, ${pendingLeftPaddleY}px, 0)`;
       rightPaddle.style.width = `${paddleWidth}px`;
       rightPaddle.style.height = powerupActive && powerupAffectedPaddle === 'right' ? `${giantPaddleHeight}px` : `${normalPaddleHeight}px`;
-      rightPaddle.style.transform = `translate3d(${rightPaddleX - paddleWidth}px, ${pendingRightPaddleY}px, 0)`;
+      rightPaddle.style.transform = `translate3d(${rightPaddleX}px, ${pendingRightPaddleY}px, 0)`;
       if (collectibleElement) {
         collectibleElement.style.width = `${collectibleSize}px`;
         collectibleElement.style.height = `${collectibleSize}px`;
@@ -811,8 +911,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
           collectibleElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.5)';
           collectibleElement.style.zIndex = '20';
           collectibleElement.style.pointerEvents = 'none';
-          collectibleX = 100 + Math.random() * (containerWidth - 200);
-          collectibleY = 100 + Math.random() * (containerHeight - 200);
           collectibleElement.style.transform = `translate3d(${collectibleX}px, ${collectibleY}px, 0)`;
           gameContainer.appendChild(collectibleElement);
           lastPowerupTime = now;

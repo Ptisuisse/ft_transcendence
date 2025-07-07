@@ -3,6 +3,13 @@ import { navigateTo } from '../routes.ts';
 import { translations } from '../i18n.ts';
 import { getCurrentLang } from '../components/navbar.ts';
 
+// Translation helper function
+function t(key: string): string {
+  const lang = getCurrentLang();
+  const langTranslations = translations[lang as keyof typeof translations] || translations.en;
+  return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
+}
+
 // Stockage des paramètres entre les pages
 interface PongMultiplayerSettings {
   ballColor: string;
@@ -284,10 +291,10 @@ export function PongMultiplayerGamePage(): HTMLElement {
       
       if (gameOverMessage && winnerText) {
         const winnerMessages: { [key: string]: string } = {
-          'left': 'Player 1 Wins!',
-          'right': 'Player 2 Wins!',
-          'top': 'Player 3 Wins!',
-          'bottom': 'Player 4 Wins!'
+          'left': `${t('Player')} 1 ${t('Wins')}`,
+          'right': `${t('Player')} 2 ${t('Wins')}`,
+          'top': `${t('Player')} 3 ${t('Wins')}`,
+          'bottom': `${t('Player')} 4 ${t('Wins')}`
         };
         
         winnerText.textContent = winnerMessages[winner];

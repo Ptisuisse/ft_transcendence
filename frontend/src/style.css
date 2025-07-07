@@ -1,3 +1,19 @@
+/* Responsive icon for translation */
+.translate-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+@media (max-width: 480px) {
+  .translate-icon {
+	width: 1.2rem;
+	height: 1.2rem;
+  }
+  .logout-btn {
+	padding: 0.25rem 0.5rem;
+	font-size: 0.8rem;
+	min-width: unset;
+  }
+}
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
 @tailwind base;
 @tailwind components;
@@ -112,10 +128,10 @@ body::before {
 		@apply font-bold hidden md:flex flex-row items-center space-x-10 mx-auto;
 	}
 
-	.navbar-links.open {
-		@apply block flex-col space-y-4;
-		@apply absolute top-full left-1/2 transform -translate-x-1/2 w-full bg-[#242424]/75 text-white backdrop-blur-sm; /* Modifié pour la transparence et le flou */
-	}
+  .navbar-links.open {
+	@apply block flex-col space-y-4 items-center text-center;
+	@apply absolute top-full left-1/2 transform -translate-x-1/2 w-full bg-[#242424]/75 text-white backdrop-blur-sm;
+  }
 
 	.hamburger-btn {
 		@apply md:hidden absolute left-1/2 transform -translate-x-1/2 text-2xl z-10; /* Assurez-vous qu'il est au-dessus des autres éléments */

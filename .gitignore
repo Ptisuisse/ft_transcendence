@@ -24,13 +24,10 @@ DataBase/dist
 DataBase/dist-ssr
 
 # Environment variables
-<<<<<<< HEAD
 .env
 *.env
 .env.*
 !.env.example
-=======
->>>>>>> a999fbfb311da45b4e9af7e0c40c242d128f337b
 
 # Runtime data
 pids

@@ -26,7 +26,6 @@ export async function ScoreboardPage(): Promise<HTMLElement> {
   table.appendChild(tbody);
   element.appendChild(table);
 
-  // Fetch scores from backend
   try {
     const res = await fetch('/score/all');
     const data = await res.json();

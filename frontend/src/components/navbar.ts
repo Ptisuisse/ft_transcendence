@@ -11,7 +11,7 @@ function setLanguage(lang: string) {
 
 const langDropdownContainer = document.createElement('div');
 langDropdownContainer.style.position = 'relative';
-langDropdownContainer.style.marginRight = '0.5rem'; // Ajoute un espace à droite du bouton traduction
+langDropdownContainer.style.marginRight = '0.5rem';
 
 const langButton = document.createElement('button');
 langButton.type = 'button';
@@ -85,7 +85,7 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   signOutButton.id = 'navbar-signout';
   signOutButton.innerText = translations[getCurrentLang()].logout;
 signOutButton.className = 'logout-btn px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition font-bold';
-// Responsive: réduit le bouton logout sur petits écrans
+
 signOutButton.style.transition = 'all 0.2s';
 function updateLogoutBtnSize() {
   if (window.innerWidth <= 480) {

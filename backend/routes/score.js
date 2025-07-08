@@ -3,7 +3,6 @@
 const { submitScore, getAllScores } = require('../plugins/blockchain');
 
 module.exports = async function (fastify, opts) {
-  // Route POST pour enregistrer un score
   fastify.post('/score/submit', async (request, reply) => {
     try {
       console.log('[score/submit] body:', request.body);
@@ -17,7 +16,6 @@ module.exports = async function (fastify, opts) {
     }
   });
 
-  // Route GET pour récupérer tous les scores
   fastify.get('/score/all', async (request, reply) => {
     try {
       const scores = await getAllScores();

@@ -2,7 +2,6 @@ import { getCurrentLang } from '../components/navbar.ts';
 import { translations } from '../i18n.ts';
 import '../style.css';
 
-// Helper function for translation
 function t(key: string): string {
   const lang = getCurrentLang();
   const langTranslations = translations[lang as keyof typeof translations] || translations.en;
@@ -11,21 +10,17 @@ function t(key: string): string {
 
 export function LoginPage(): HTMLElement {
   const element = document.createElement('div');
-  // Centrage vertical/horizontal
   element.className = 'Parent p-5';
 
   const CLIENT_ID = '466591943367-vfpoq4upenktcjdtb0kv0hd7mc8bidrt.apps.googleusercontent.com';
 
-  // Container principal
   const container = document.createElement('div');
   container.className = 'md:mt-60 mt-20 bg-zinc-900 border-2 border-indigo-400 rounded-xl p-10 max-w-md mx-auto shadow-lg flex flex-col items-center';
 
-  // Titre
   const title = document.createElement('h2');
   title.className = 'text-3xl font-bold text-white mb-8';
   title.innerText = t('login');
 
-  // Google onload
   const gIdOnload = document.createElement('div');
   gIdOnload.id = 'g_id_onload';
   gIdOnload.setAttribute('data-client_id', CLIENT_ID);
@@ -34,7 +29,6 @@ export function LoginPage(): HTMLElement {
   gIdOnload.setAttribute('data-callback', 'handleCredentialResponse');
   gIdOnload.setAttribute('data-auto_prompt', 'false');
 
-  // Google Signin button
   const gIdSignin = document.createElement('div');
   gIdSignin.className = 'g_id_signin';
   gIdSignin.setAttribute('data-type', 'standard');
@@ -45,22 +39,18 @@ export function LoginPage(): HTMLElement {
   gIdSignin.setAttribute('data-logo_alignment', 'left');
   gIdSignin.style.display = 'block';
 
-  // Status message
   const statusMessage = document.createElement('p');
   statusMessage.id = 'status-message';
   statusMessage.className = 'text-white mt-4';
   statusMessage.innerText = t('WaitingForAuth');
 
-  // Ajout des éléments au container
   container.appendChild(title);
   container.appendChild(gIdOnload);
   container.appendChild(gIdSignin);
   container.appendChild(statusMessage);
 
-  // Ajout du container à la page
   element.appendChild(container);
 
-  // Ajout du script Google Identity Services (une seule fois)
   function renderGoogleButton() {
     if ((window as any).google && (window as any).google.accounts && (window as any).google.accounts.id) {
       (window as any).google.accounts.id.initialize({
@@ -107,17 +97,13 @@ export function LoginPage(): HTMLElement {
     waitForGoogleScriptAndRender();
   }
 
-  // Affiche toujours le bouton Google si pas connecté (même après navigation)
   setTimeout(() => {
     const token = localStorage.getItem('token');
     gIdSignin.style.display = token ? 'none' : 'block';
   }, 0);
 
-  // Callback global pour Google
   (window as any).handleCredentialResponse = (response: any) => {
-    // Force le bouton à se réafficher si besoin
     gIdSignin.style.display = 'block';
-    //console.log('[Login] handleCredentialResponse called', response);
     const jwt = response.credential;
 
     fetch('api/auth/google', {
@@ -126,15 +112,11 @@ export function LoginPage(): HTMLElement {
       body: JSON.stringify({ jwt })
     })
       .then(res => {
-        //console.log('[Login] Backend responded to /api/auth/google', res);
         return res.json();
       })
       .then(async data => {
-        //console.log('[Login] Data received from backend:', data);
         statusMessage.innerHTML = '';
         if (data && data.token && data.name && data.picture) {
-          // On a bien reçu les infos, on lance la 2FA
-          // On suppose que l'email est dans le JWT (décodage simple)
           let email = undefined;
           try {
             const payload = JSON.parse(atob(data.token.split('.')[1]));
@@ -144,17 +126,15 @@ export function LoginPage(): HTMLElement {
             statusMessage.innerText = t('EmailNotFoundInToken');
             return;
           }
-          // Envoie le code 2FA
           statusMessage.innerText = t('Sending2FACode');
           await fetch('/api/auth/2fa/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
           });
-          // Supprime le formulaire précédent s'il existe
+
           const oldForm = container.querySelector('form');
           if (oldForm) oldForm.remove();
-          // Affiche le formulaire de saisie du code
           const codeForm = document.createElement('form');
           codeForm.className = 'flex flex-col items-center mt-4';
           const codeInput = document.createElement('input');
@@ -201,7 +181,6 @@ export function LoginPage(): HTMLElement {
   return element;
 }
 
-// Ajout pour TypeScript : déclare la fonction globale renderPage sur window
 declare global {
   interface Window {
     renderPage: () => void;

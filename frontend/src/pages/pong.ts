@@ -4,33 +4,27 @@ import { translations } from '../i18n.ts';
 import { getCurrentLang } from '../components/navbar.ts';
 import { gameState } from '../gameState.ts';
 
-// Translation helper function
 function t(key: string): string {
   const lang = getCurrentLang();
   const langTranslations = translations[lang as keyof typeof translations] || translations.en;
   return langTranslations[key as keyof typeof langTranslations] || translations.en[key as keyof typeof translations.en] || key;
 }
 
-// Stockage des paramètres entre les pages
 interface PongSettings {
   ballColor: string;
   leftPaddleColor: string;
   rightPaddleColor: string;
   aiEnabled: boolean;
-  powerupsEnabled: boolean; // New setting for power-ups
+  powerupsEnabled: boolean;
 }
 
-// Page du menu
 export function PongMenuPage(): HTMLElement {
   const element = document.createElement('div');
-  // Replace the current className with Parent for responsive layout
   element.className = 'Parent p-5 flex flex-col items-center';
   
-  // Make the menu container responsive
   const menuModal = document.createElement('div');
   menuModal.className = 'w-full max-w-[400px] bg-gray-800 border-2 border-purple-500 rounded-lg p-4 sm:p-6 shadow-xl mx-auto';
 
-  // Vérifier si c'est un match de tournoi
   const isTournamentMatch = localStorage.getItem('currentTournamentMatch') !== null;
   let currentMatch: any = null;
   
@@ -42,13 +36,11 @@ export function PongMenuPage(): HTMLElement {
     }
   }
 
-  // Menu title
   const menuTitle = document.createElement('h2');
   menuTitle.className = 'text-white text-2xl font-bold mb-6 text-center';
   menuTitle.textContent = isTournamentMatch ? t('TournamentMatch') : translations[getCurrentLang()].PongSettings;
   menuModal.appendChild(menuTitle);
 
-  // Afficher les joueurs du tournoi si c'est un match de tournoi
   if (isTournamentMatch && currentMatch) {
     const playersInfo = document.createElement('div');
     playersInfo.className = 'bg-gray-700 p-3 rounded-md mb-6 text-center';
@@ -60,7 +52,6 @@ export function PongMenuPage(): HTMLElement {
     menuModal.appendChild(playersInfo);
   }
 
-  // Ball color selection
   const colorSection = document.createElement('div');
   colorSection.className = 'mb-6';
   
@@ -76,7 +67,6 @@ export function PongMenuPage(): HTMLElement {
   colorSection.appendChild(ballColorPicker);
   menuModal.appendChild(colorSection);
   
-  // Left paddle selection
   const leftPaddleSection = document.createElement('div');
   leftPaddleSection.className = 'mb-6';
   
@@ -92,7 +82,6 @@ export function PongMenuPage(): HTMLElement {
   leftPaddleSection.appendChild(leftPaddleColorPicker);
   menuModal.appendChild(leftPaddleSection);
   
-  // Right paddle selection
   const rightPaddleSection = document.createElement('div');
   rightPaddleSection.className = 'mb-6';
   
@@ -108,7 +97,6 @@ export function PongMenuPage(): HTMLElement {
   rightPaddleSection.appendChild(rightPaddleColorPicker);
   menuModal.appendChild(rightPaddleSection);
   
-  // AI section - afficher uniquement si ce n'est PAS un match de tournoi
   if (!isTournamentMatch) {
     const aiSection = document.createElement('div');
     aiSection.className = 'mb-6';
@@ -118,7 +106,6 @@ export function PongMenuPage(): HTMLElement {
     aiLabel.textContent = translations[getCurrentLang()].EnableIA;
     aiSection.appendChild(aiLabel);
 
-    // AI toggle
     const toggleContainer = document.createElement('div');
     toggleContainer.className = 'flex items-center justify-between';
 
@@ -169,7 +156,7 @@ export function PongMenuPage(): HTMLElement {
     menuModal.appendChild(aiSection);
   }
   
-  // Power-ups section
+
   const powerupsSection = document.createElement('div');
   powerupsSection.className = 'mb-6';
 
@@ -178,7 +165,7 @@ export function PongMenuPage(): HTMLElement {
   powerupsLabel.textContent = translations[getCurrentLang()].EnablePowerups || "Enable Power-ups";
   powerupsSection.appendChild(powerupsLabel);
 
-  // Power-ups toggle
+ 
   const powerupsContainer = document.createElement('div');
   powerupsContainer.className = 'flex items-center justify-between';
 
@@ -196,7 +183,7 @@ export function PongMenuPage(): HTMLElement {
   const powerupsToggleInput = document.createElement('input');
   powerupsToggleInput.type = 'checkbox';
   powerupsToggleInput.className = 'opacity-0 w-0 h-0';
-  powerupsToggleInput.id = 'powerups-toggle'; // Ajout d'un ID
+  powerupsToggleInput.id = 'powerups-toggle';
   powerupsToggleInput.checked = false;
 
   const powerupsToggleSlider = document.createElement('span');
@@ -229,12 +216,10 @@ export function PongMenuPage(): HTMLElement {
   powerupsSection.appendChild(powerupsContainer);
   menuModal.appendChild(powerupsSection);
   
-  // Start button
   const startButton = document.createElement('button');
   startButton.className = 'w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition-colors font-bold';
   startButton.textContent = translations[getCurrentLang()].StartGame;
   startButton.addEventListener('click', () => {
-    // Sauvegarder les paramètres
     const settings: PongSettings = {
       ballColor: ballColorPicker.value,
       leftPaddleColor: leftPaddleColorPicker.value,
@@ -243,14 +228,11 @@ export function PongMenuPage(): HTMLElement {
       powerupsEnabled: (document.getElementById('powerups-toggle') as HTMLInputElement)?.checked || false
     };
     
-    // Stocker dans localStorage pour y accéder depuis la page de jeu
     localStorage.setItem('pongSettings', JSON.stringify(settings));
     
-    // Naviguer vers la page de jeu
     navigateTo('/pong/game');
   });
   
-  // Ajouter un bouton pour annuler le match de tournoi si nécessaire
   if (isTournamentMatch) {
     const buttonsContainer = document.createElement('div');
     buttonsContainer.className = 'w-full flex gap-4';
@@ -276,22 +258,19 @@ export function PongMenuPage(): HTMLElement {
   return element;
 }
 
-// Page du jeu
 export function PongGamePage(): HTMLElement {
   const element = document.createElement('div');
   element.className = 'Parent p-5 flex flex-col items-center';
   
-  // Make game wrapper responsive
   const gameWrapper = document.createElement('div');
   gameWrapper.className = 'relative w-full max-w-[800px] mx-auto';
   
-  // Charger les paramètres
   let settings: PongSettings = {
     ballColor: '#FFFFFF',
     leftPaddleColor: '#FF0000',
     rightPaddleColor: '#00AAFF',
     aiEnabled: false,
-    powerupsEnabled: false // Valeur par défaut pour les power-ups
+    powerupsEnabled: false
   };
   
   try {
@@ -303,15 +282,12 @@ export function PongGamePage(): HTMLElement {
     console.error('Failed to load game settings:', error);
   }
   
-  // Tableau de score
   const scoreBoard = createScoreBoard(settings.leftPaddleColor, settings.rightPaddleColor);
   gameWrapper.appendChild(scoreBoard);
   
-  // Conteneur de jeu
   const gameContainer = createGameContainer(settings.leftPaddleColor, settings.rightPaddleColor);
   gameWrapper.appendChild(gameContainer);
   
-  // Message de fin de jeu (initialement caché)
   const gameOverMessage = document.createElement('div');
   gameOverMessage.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-90 p-6 rounded-lg text-center hidden';
   gameOverMessage.id = 'game-over-message';
@@ -323,36 +299,29 @@ export function PongGamePage(): HTMLElement {
   
   gameWrapper.appendChild(gameOverMessage);
   
-  // Vérifier si le jeu fait partie d'un match de tournoi valide
   let isTournamentMatch = false;
   let currentMatchData = localStorage.getItem('currentTournamentMatch');
 
   if (currentMatchData) {
     try {
       const currentMatch = JSON.parse(currentMatchData);
-      // Vérifier que le match vient bien de la page de tournoi
       isTournamentMatch = currentMatch && currentMatch.source === 'tournament';
       
       if (!isTournamentMatch) {
-        // Si ce n'est pas un match valide, nettoyer le localStorage
         localStorage.removeItem('currentTournamentMatch');
-        //console.log('Match de tournoi invalide détecté et nettoyé');
       }
     } catch (e) {
-      // En cas d'erreur de parsing, nettoyer
       localStorage.removeItem('currentTournamentMatch');
       console.error('Erreur lors de la vérification du match de tournoi', e);
     }
   }
 
-  // Create appropriate button based on context
   const menuButton = document.createElement('button');
   menuButton.className = 'mt-4 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors self-center';
 
   if (isTournamentMatch) {
     menuButton.textContent = 'Return to Tournament';
     menuButton.addEventListener('click', () => {
-      // Nettoyage avant navigation
       if (typeof cleanup === 'function') {
         cleanup();
       }
@@ -361,7 +330,6 @@ export function PongGamePage(): HTMLElement {
   } else {
     menuButton.textContent = translations[getCurrentLang()].BackToMenu;
     menuButton.addEventListener('click', () => {
-      // Nettoyage avant navigation
       if (typeof cleanup === 'function') {
         cleanup();
       }
@@ -371,11 +339,8 @@ export function PongGamePage(): HTMLElement {
   
   element.appendChild(gameWrapper);
   element.appendChild(menuButton);
-  
-  // Démarrer le jeu avec un léger délai pour laisser le DOM se mettre en place
+
   let cleanup: (() => void) | undefined;
-  // === Ajout overlay de chargement ===
-  // Création de l'overlay (masqué par défaut)
   let loadingOverlay: HTMLDivElement | null = null;
   if (isTournamentMatch) {
     loadingOverlay = document.createElement('div');
@@ -401,26 +366,22 @@ export function PongGamePage(): HTMLElement {
     `;
     document.body.appendChild(loadingOverlay);
   }
-  // ...existing code...
+
   setTimeout(() => {
     const ball = document.getElementById('ball');
     if (ball) ball.style.backgroundColor = settings.ballColor;
     const result = setupPaddleMovement(settings.aiEnabled, settings.powerupsEnabled);
     cleanup = result.cleanup;
     
-    // Register the cleanup function with the global game state
     gameState.registerCleanup(result.cleanup);
     
-    // Ajoutez un écouteur d'événements pour détecter les changements d'URL via la navbar
     const handleNavigation = () => {
       if (typeof cleanup === 'function') {
         cleanup();
       }
     };
-    // Utiliser un MutationObserver pour surveiller les changements du body
     const observer = new MutationObserver((mutations) => {
       mutations.forEach(() => {
-        // Si nous sommes plus sur la page du jeu, nettoyer
         const gameContainer = document.getElementById('game-container');
         if (!gameContainer || !document.body.contains(gameContainer)) {
           handleNavigation();
@@ -439,10 +400,8 @@ export function PongGamePage(): HTMLElement {
     window.addEventListener('beforeunload', handleBeforeUnload);
     (element as any).__cleanupHandler = handleBeforeUnload;
 
-    // Affichage du message de victoire
     result.gameOverPromise.then(async (winner) => {
       let winnerText = '';
-      // === Gestion du tournoi ===
       let winnerName = '';
       if (isTournamentMatch) {
         try {
@@ -477,17 +436,13 @@ export function PongGamePage(): HTMLElement {
         gameOverMessage.classList.remove('hidden');
       }
 
-      // === Gestion du tournoi ===
       if (isTournamentMatch) {
-        // === Afficher l'overlay de chargement et bloquer navigation ===
         if (loadingOverlay) {
           loadingOverlay.style.display = 'flex';
-          // Désactiver tous les boutons et la navbar
           document.querySelectorAll('button, a, [tabindex]').forEach(el => {
             (el as HTMLElement).setAttribute('disabled', 'true');
             (el as HTMLElement).style.pointerEvents = 'none';
           });
-          // Désactiver la navbar si elle existe
           const navbar = document.querySelector('nav');
           if (navbar) {
             (navbar as HTMLElement).style.pointerEvents = 'none';
@@ -550,7 +505,6 @@ export function PongGamePage(): HTMLElement {
                   winnerPlayer
                 );
                 localStorage.removeItem('currentTournamentMatch');
-                // === Retirer l'overlay et réactiver navigation ===
                 if (loadingOverlay) {
                   loadingOverlay.style.display = 'none';
                   document.querySelectorAll('button, a, [tabindex]').forEach(el => {
@@ -571,7 +525,6 @@ export function PongGamePage(): HTMLElement {
           }
         } catch (e) {
           console.error('Erreur lors de la mise à jour du tournoi:', e);
-          // === Retirer l'overlay même en cas d'erreur ===
           if (loadingOverlay) {
             loadingOverlay.style.display = 'none';
             document.querySelectorAll('button, a, [tabindex]').forEach(el => {
@@ -625,11 +578,9 @@ function createScoreBoard(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDi
 
 function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTMLDivElement {
   const border = document.createElement('div');
-  // Use relative positioning with aspect ratio preservation
   border.className = 'border-2 border-solid border-green-500 w-full max-w-[800px] aspect-[4/3] bg-gray-900 relative overflow-hidden';
   border.id = 'game-container';
   
-  // Left paddle - positions will be set by the game logic
   const leftPaddle = document.createElement('div');
   leftPaddle.className = 'absolute';
   leftPaddle.id = 'left-paddle';
@@ -637,7 +588,6 @@ function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTM
   leftPaddle.style.willChange = 'transform, height';
   leftPaddle.style.transition = 'height 0.3s ease-in-out';
   
-  // Right paddle - positions will be set by the game logic
   const rightPaddle = document.createElement('div');
   rightPaddle.className = 'absolute';
   rightPaddle.id = 'right-paddle';
@@ -645,7 +595,6 @@ function createGameContainer(leftColor = '#FF0000', rightColor = '#00AAFF'): HTM
   rightPaddle.style.willChange = 'transform, height';
   rightPaddle.style.transition = 'height 0.3s ease-in-out';
 
-  // Ball - position will be set by the game logic
   const ball = document.createElement('div');
   ball.className = 'absolute rounded-full';
   ball.id = 'ball';
@@ -669,19 +618,16 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   if (!leftPaddle || !rightPaddle || !ball || !gameContainer || 
       !leftScoreElement || !rightScoreElement) return { cleanup: () => {}, gameOverPromise: Promise.resolve('none') };
 
-  // Score variables
   let leftScore = 0;
   let rightScore = 0;
-  const maxScore = 3; // Score maximum pour gagner
+  const maxScore = 3;
   let gameOver = false;
   let gameOverResolve: (winner: string) => void;
 
-  // Promesse qui sera résolue quand un joueur gagne
   const gameOverPromise = new Promise<string>(resolve => {
     gameOverResolve = resolve;
   });
 
-  // Responsive variables
   let containerWidth = gameContainer.clientWidth;
   let containerHeight = gameContainer.clientHeight;
   const paddleWidthPercent = 0.01875;
@@ -695,7 +641,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   let normalPaddleHeight = paddleHeight;
   let giantPaddleHeight = paddleHeight * 2;
   let leftPaddleX = containerWidth * 0.0125;
-  let rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
+  let rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent);
   let leftPaddleY = (containerHeight - paddleHeight) / 2;
   let rightPaddleY = (containerHeight - paddleHeight) / 2;
   let paddleSpeed = containerWidth * 0.00625;
@@ -727,7 +673,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
   let collectibleX = 0;
   let collectibleY = 0;
 
-  // Resize observer
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
       if (entry.target === gameContainer) {
@@ -744,7 +689,7 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
         ballSize = containerWidth * ballSizePercent;
         collectibleSize = containerWidth * collectibleSizePercent;
         leftPaddleX = containerWidth * 0.0125;
-        rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent); // Position symétrique à la paddle gauche
+        rightPaddleX = containerWidth * (1 - 0.0125 - paddleWidthPercent);
         leftPaddleY *= heightRatio;
         rightPaddleY *= heightRatio;
         ballX *= widthRatio;
@@ -903,7 +848,6 @@ function setupPaddleMovement(aiEnabled: boolean = false, powerupsEnabled: boolea
       const now = performance.now();
       if (!powerupActive && !collectibleElement && now - lastPowerupTime > powerupCooldown) {
         if (Math.random() < 0.01) {
-          // Générer des coordonnées aléatoires pour le collectible
           collectibleX = Math.random() * (containerWidth - collectibleSize);
           collectibleY = Math.random() * (containerHeight - collectibleSize);
           

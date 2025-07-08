@@ -11,11 +11,12 @@ function setLanguage(lang: string) {
 
 const langDropdownContainer = document.createElement('div');
 langDropdownContainer.style.position = 'relative';
+langDropdownContainer.style.marginRight = '0.5rem';
 
 const langButton = document.createElement('button');
 langButton.type = 'button';
 langButton.className = 'ml-2 p-1 bg-transparent border-none cursor-pointer flex items-center';
-langButton.innerHTML = `<img src="/translate.png" alt="Lang" class="w-7 h-7" />`;
+langButton.innerHTML = `<img src="/translate.png" alt="Lang" class="translate-icon" />`;
 
 const langMenu = document.createElement('ul');
 langMenu.className = 'absolute right-0 mt-2 bg-[#242424] rounded shadow-lg z-50 text-white border border-cyan-700';
@@ -83,7 +84,22 @@ export function createNavbar(routes: { [key: string]: string }): HTMLElement {
   const signOutButton = document.createElement('button');
   signOutButton.id = 'navbar-signout';
   signOutButton.innerText = translations[getCurrentLang()].logout;
-  signOutButton.className = 'px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition font-bold';
+signOutButton.className = 'logout-btn px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition font-bold';
+
+signOutButton.style.transition = 'all 0.2s';
+function updateLogoutBtnSize() {
+  if (window.innerWidth <= 480) {
+    signOutButton.style.padding = '0.25rem 0.5rem';
+    signOutButton.style.fontSize = '0.8rem';
+    signOutButton.style.minWidth = 'unset';
+  } else {
+    signOutButton.style.padding = '';
+    signOutButton.style.fontSize = '';
+    signOutButton.style.minWidth = '';
+  }
+}
+window.addEventListener('resize', updateLogoutBtnSize);
+updateLogoutBtnSize();
   signOutButton.style.display = 'none';
   signOutButton.onclick = () => {
     localStorage.removeItem('token');

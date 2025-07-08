@@ -9,7 +9,6 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-// Stockage temporaire des codes 2FA (en mémoire, à remplacer par Redis/DB en prod)
 const twoFACodes = {};
 
 module.exports = async function (fastify, opts) {
@@ -27,32 +26,25 @@ module.exports = async function (fastify, opts) {
       const payload = ticket.getPayload();
       const { sub, email, name, picture } = payload;
 
-      // Appel à l'API du service db pour insérer ou mettre à jour l'utilisateur
       await axios.post('http://db:4000/users', { username: name, email });
 
-      // Générer un JWT pour la persistance de session
       const token = jwtLib.sign({ email, name, picture }, JWT_SECRET, { expiresIn: '7d' });
 
-      // Retourner le nom, la photo et le token au frontend
       return { name, picture, token };
     } catch (err) {
       reply.code(401).send({ ok: false, message: 'Token Google invalide', error: err.message });
     }
   });
 
-  // Route pour envoyer le code 2FA par email
   fastify.post('/auth/2fa/send', async function (request, reply) {
     try {
       const { email } = request.body;
       if (!email) {
         return reply.code(400).send({ ok: false, message: 'Email requis' });
       }
-      // Génère un code à 6 chiffres
       const code = crypto.randomInt(100000, 1000000).toString();
-      // Stocke le code temporairement (5 min)
       twoFACodes[email] = { code, expires: Date.now() + 5 * 60 * 1000 };
 
-      // Configure le transporteur nodemailer (exemple Gmail, à adapter)
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -61,7 +53,6 @@ module.exports = async function (fastify, opts) {
         },
       });
 
-      // Envoie l'email
       await transporter.sendMail({
         from: process.env.MAIL_USER,
         to: email,
@@ -76,7 +67,6 @@ module.exports = async function (fastify, opts) {
     }
   });
 
-  // Route pour vérifier le code 2FA
   fastify.post('/auth/2fa/verify', async function (request, reply) {
     const { email, code } = request.body;
     if (!email || !code) {
@@ -90,7 +80,6 @@ module.exports = async function (fastify, opts) {
       if (!code) message = 'Code incorrect';
       return reply.code(401).send({ ok: false, message });
     }
-    // Code correct, suppression du code utilisé
     delete twoFACodes[email];
     return { ok: true, message: 'Code validé' };
   });

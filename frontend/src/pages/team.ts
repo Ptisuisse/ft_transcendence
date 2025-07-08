@@ -10,7 +10,6 @@ interface CardData {
     borderStart: string;
 }
 
-// Helper function for translation
 function t(key: string): string {
   const lang = getCurrentLang();
   const langTranslations = translations[lang as keyof typeof translations] || translations.en;
@@ -114,7 +113,10 @@ export function TeamPage(): HTMLElement {
             contributions: [
                 'lvanSluContrib1',
                 'lvanSluContrib2',
-                'lvanSluContrib3'
+                'lvanSluContrib3',
+                'lvanSluContrib4',
+                'lvanSluContrib5',
+                'lvanSluContrib6'
             ],
             classe: 'absolute inset-0 w-full h-full object-cover transform scale-150 translate-x-0 translate-y-[-10%]',
             borderStart: '0deg'

@@ -10,7 +10,6 @@ interface CardData {
     borderStart: string;
 }
 
-// Helper function for translation
 function t(key: string): string {
   const lang = getCurrentLang();
   const langTranslations = translations[lang as keyof typeof translations] || translations.en;

@@ -1,4 +1,4 @@
-// filepath: backend/routes/root.js
+
 'use strict'
 
 const authenticate = require('../plugins/authenticate');
@@ -7,7 +7,6 @@ module.exports = async function (fastify, opts) {
   fastify.addHook('preHandler', authenticate);
 
   fastify.get('/', async function (request, reply) {
-    // Exemple : requête vers l'API du service db pour vérifier la connexion
     try {
       const response = await require('axios').get('http://db:4000/users/test@example.com');
       return { root: true, user: response.data };
@@ -16,7 +15,6 @@ module.exports = async function (fastify, opts) {
     }
   });
 
-  // Route GET pour lister tous les utilisateurs
   fastify.get('/users', async function (request, reply) {
     try {
       const response = await require('axios').get('http://db:4000/users');
@@ -26,7 +24,6 @@ module.exports = async function (fastify, opts) {
     }
   });
 
-  // Route POST pour ajouter un utilisateur (username et email uniquement)
   fastify.post('/users', async function (request, reply) {
     const { username, email } = request.body;
     if (!username || !email) {

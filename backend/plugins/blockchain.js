@@ -16,7 +16,6 @@ const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, wallet);
 
-// Fonction pour enregistrer un score
 async function submitScore(score, winnerName, scoreDetail) {
   try {
     console.log('[blockchain] submitScore called with:', score, winnerName, scoreDetail);
@@ -31,17 +30,14 @@ async function submitScore(score, winnerName, scoreDetail) {
   }
 }
 
-// Récupérer le nombre de scores
 async function getScoresCount() {
   return await contract.getScoresCount();
 }
 
-// Récupérer un score par son index
 async function getScore(index) {
   return await contract.getScore(index);
 }
 
-// Récupérer tous les scores
 async function getAllScores() {
   const count = await getScoresCount();
   const scores = [];

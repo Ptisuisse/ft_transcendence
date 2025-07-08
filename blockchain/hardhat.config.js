@@ -15,7 +15,7 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      avalancheFujiTestnet: "placeholder" // n'importe quelle string
+      avalancheFujiTestnet: "placeholder"
     },
     customChains: [
       {

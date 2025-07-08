@@ -3,14 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const { ethers } = require('ethers');
 
-// Chemin absolu vers le fichier ABI généré par Hardhat
 const artifactPath = path.join(__dirname, '../abi/TournamentScores.json');
 const contractJson = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
 const abi = contractJson.abi;
 
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;// Adresse déployée
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
 const PROVIDER_URL = 'https://api.avax-test.network/ext/bc/C/rpc';
-const PRIVATE_KEY = process.env.PRIVATE_KEY; // Doit être dans ton .env
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
 const provider = new ethers.JsonRpcProvider(PROVIDER_URL);
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
